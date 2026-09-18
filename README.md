@@ -6,11 +6,13 @@
 
 ## [기능명세 및 요구사항](docs/01_planning/02_prd.md)
 
-## [시스템 아키텍처](docs/02_design/01_architecture.md)
+## [의사결정 기록서](docs/02_planning/01_ard.md)
+
+## [시스템 아키텍처](docs/02_design/02_architecture.md)
 
 ## [화면 설계서](docs/02_design/03_ui_wireframe.md)
 
-## [ERD 데이터그램](docs/02_design/02_erd.md)
+## [ERD 데이터그램](docs/02_design/04_erd.md)
 
 ## [트러블 슈팅](docs/03_reports/troubleshooting.md)
 
