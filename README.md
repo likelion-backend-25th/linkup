@@ -6,7 +6,7 @@
 
 ## [기능명세 및 요구사항](docs/01_planning/02_prd.md)
 
-## [의사결정 기록서](docs/02_planning/01_ard.md)
+## [의사결정 기록서](docs/02_design/01_ard.md)
 
 ## [시스템 아키텍처](docs/02_design/02_architecture.md)
 
