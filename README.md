@@ -45,3 +45,5 @@
 - [HR-Kim-HR](github.com/HR-Kim-HR)
 - 발표
 - Domain: 팔로우, 검색
+
+## [실행 및 테스트 방법](docs/execute_and_test.md)
