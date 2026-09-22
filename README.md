@@ -21,16 +21,27 @@
 ### 김두희
 - [doo3721](github.com/doo3721)
 - PL(Project Leader)
+- DevOps: Docker, github action
+- Domain: 결제, 구독, 크리에이터
 
 ### 최원일
 - [GWC1111](github.com/GWC1111)
 - PM(Project Manager)
+- DevOps: 프론트엔드 배포 (S3 + Cloudfront)
+- Domain: 게시글, 댓글, 좋아요
 
 ### 이수환
 - [Suhwan623](github.com/Suhwan623)
+- 서기
+- DevOps: 백엔드 배포 (AWS EC2)
+- Domain: 회원관리, 로그인
 
 ### 윤승영
 - [byeolyeong](github.com/byeolyeong)
+- 서기
+- Domain: 관리자 페이지
 
 ### 김혜란
 - [HR-Kim-HR](github.com/HR-Kim-HR)
+- 발표
+- Domain: 팔로우, 검색
