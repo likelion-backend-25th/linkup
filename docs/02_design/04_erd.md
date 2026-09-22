@@ -171,7 +171,7 @@ erDiagram
 | --- | --- | --- | --- |
 | id | BIGINT | PK, AUTO_INCREMENT | 회원 고유 식별자 |
 | email | VARCHAR(100) | NOT NULL, UNIQUE | 로그인 아이디 (이메일) |
-| password | VARCHAR(255) | NOT NULL | BCrypt 암호화된 비밀번호 |
+| password | VARCHAR(255) | NULL | BCrypt 암호화된 비밀번호 |
 | name | VARCHAR(50) | NOT NULL | 화면 표시용 닉네임 |
 | unique_id | VARCHAR(50) | NOT NULL, UNIQUE | 화면 표시, 회원 식별용 아이디 / 가입 시 이메일 @ 앞부분으로 자동 생성되며 이후 수정 가능 |
 | profile_image | VARCHAR(255) | NULL | AWS S3 프로필 사진 URL |
@@ -324,7 +324,7 @@ erDiagram
 CREATE TABLE member (
                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
                       email VARCHAR(100) NOT NULL UNIQUE,
-                      password VARCHAR(255) NOT NULL,
+                      password VARCHAR(255) NULL,
                       name VARCHAR(50) NOT NULL,
                       unique_id VARCHAR(30) NOT NULL UNIQUE,
                       profile_image VARCHAR(255) NULL,

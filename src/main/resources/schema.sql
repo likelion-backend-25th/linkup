@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS member;
 CREATE TABLE member (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL,
     name VARCHAR(50) NOT NULL,
     unique_id VARCHAR(30) NOT NULL UNIQUE,
     profile_image VARCHAR(255) NULL,
