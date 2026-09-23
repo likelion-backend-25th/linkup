@@ -18,7 +18,7 @@ spring:
   # 데이터베이스 초기화 설정
   sql:
     init:
-      mode: never
+      mode: always
 
   # OAuth2 소셜 로그인 설정
   security:
