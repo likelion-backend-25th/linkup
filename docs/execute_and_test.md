@@ -2,8 +2,11 @@
 
 ## 테스트
 ```bash
-# 테스트 실행시
+# 앱과 DB 테스트 실행시
 docker compose up -d
+
+# DB만 필요할 겯우
+docker compose up -d mysql
 
 # 컨테이너 삭제시
 docker compose down
