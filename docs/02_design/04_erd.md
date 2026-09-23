@@ -51,6 +51,8 @@ erDiagram
         varchar role "ROLE_USER, ROLE_CREATOR, ROLE_ADMIN"
         int warning_count "경고 횟수"
         datetime writing_restricted_time "글쓰기 제한 기간"
+        int following_count "내가 팔로우하는 사람 수"
+        int follower_count "나를 팔로우하는 사람 수"       
         datetime created_at "계정 생성 일시"
         datetime updated_at "계정 수정 일시"
     }
@@ -171,15 +173,17 @@ erDiagram
 | --- | --- | --- | --- |
 | id | BIGINT | PK, AUTO_INCREMENT | 회원 고유 식별자 |
 | email | VARCHAR(100) | NOT NULL, UNIQUE | 로그인 아이디 (이메일) |
-| password | VARCHAR(255) | NULL | BCrypt 암호화된 비밀번호 |
+| password | VARCHAR(255) | NOT NULL | BCrypt 암호화된 비밀번호 |
 | name | VARCHAR(50) | NOT NULL | 화면 표시용 닉네임 |
 | unique_id | VARCHAR(50) | NOT NULL, UNIQUE | 화면 표시, 회원 식별용 아이디 / 가입 시 이메일 @ 앞부분으로 자동 생성되며 이후 수정 가능 |
 | profile_image | VARCHAR(255) | NULL | AWS S3 프로필 사진 URL |
 | introduction | TEXT | NULL | 자기소개 |
 | role | VARCHAR(20) | NOT NULL, DEFAULT 'ROLE_USER' | 권한 (ROLE_USER, ROLE_CREATOR, ROLE_ADMIN) |
-| warning_count | INT | NOT NULL, DEFAULT 0 | 경고 횟수 (1회: 단순 경고, 2회: 글쓰기 기간 제한, 3회: 회원 탈퇴) |
+| warning_count | INT | NOT NULL, DEFAULT 0 | 경고 횟수 (1회: 단순 경고, 2회: 글쓰기 기간 제한, 3회: 회원 정지) |
 | writing_restricted_time | DATETIME | NULL | 글쓰기 제한 기간 
 (경고 2회시 해당 시간으로부터 7일 제한) |
+| following_count | INT | NOT NULL, DEFAULT 0 | 내가 팔로우 하는 사람 수 |
+| follower_count | INT | NOT NULL, DEFAULT 0 | 나를 팔로우 하는 사람 수 |
 | created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 계정 생성 일시 |
 | updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP ON UPDATE | 계정 수정 일시 |
 
