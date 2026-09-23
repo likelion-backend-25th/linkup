@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.likelion.bebc25.linkup.post.mapper.FeedMapper">
+    <!-- 내가 팔로잉한 회원들 피드 조회 -->
+    <select id="findFollowingFeed" resultType="PostFeedResponse">
+        SELECT
+        p.id                AS post_id,
+        m.id                AS member_id,
+        m.name              AS member_name,
+        m.unique_id         AS unique_id,
+        m.profile_image     AS profile_image_url,
+        p.content           AS content,
+        pi.image_url        AS main_image_url,
+        p.like_count        AS like_count,
+        0                   AS comment_count,
+        p.subscriber_only   AS subscriber_only,
+        p.created_at        AS created_at
+        FROM post p
+        JOIN follow f ON f.target_id = p.member_id
+        JOIN member m ON m.id = p.member_id
+        LEFT JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 0
+        <where>
+            AND f.member_id = #{memberId}
+            <if test="cursor != null">
+                AND p.id &lt; #{cursor}
+            </if>
+        </where>
+        ORDER BY p.id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>
