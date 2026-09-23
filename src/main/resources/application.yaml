@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    default: prod
   application:
     name: linkup
   # 데이터베이스 접속 정보
@@ -11,7 +13,7 @@ spring:
   # 데이터베이스 초기화 설정 (애플리케이션 구동 시 schema.sql 및 data.sql 자동 실행)
   sql:
     init:
-      mode: always
+      mode: never
 
   # OAuth2 소셜 로그인 설정 (application-oauth.yaml 통합)
   security:
