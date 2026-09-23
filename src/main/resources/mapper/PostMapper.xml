@@ -4,7 +4,6 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="net.likelion.bebc25.linkup.post.mapper.PostMapper">
-
     <!-- 게시글 등록 -->
     <insert id="insert" parameterType="Post" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO post ( member_id, content, file_url, subscriber_only )
@@ -17,5 +16,4 @@
         FROM post
         WHERE id = #{postId}
     </select>
-
 </mapper>
