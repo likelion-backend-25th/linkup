@@ -293,10 +293,16 @@ CREATE TABLE payment (
     status VARCHAR(20) NOT NULL,
     pay_method VARCHAR(30) NOT NULL,
     paid_at DATETIME NULL,
+    subscription_id BIGINT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_payment_member
         FOREIGN KEY (member_id)
             REFERENCES member(id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_payment_subscription
+        FOREIGN KEY (subscription_id)
+            REFERENCES subscription(id)
             ON DELETE CASCADE
 );
