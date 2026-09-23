@@ -43,13 +43,13 @@
     </select>
 
     <select id="findByMemberId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscribeCreatorListColumns" />
+        SELECT <include refid="subscriptionColumns" />
         FROM subscription
         WHERE member_id = #{memberId}
     </select>
 
     <select id="findSubscribeCreatorList" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse">
-        SELECT <include refid="subListColumns" />
+        SELECT <include refid="subscribeCreatorListColumns" />
         FROM subscription as s
         JOIN member m ON m.id = s.creator_id
         WHERE member_id = #{memberId}
