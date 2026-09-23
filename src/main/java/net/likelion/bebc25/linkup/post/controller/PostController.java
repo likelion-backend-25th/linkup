@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
+import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
 import net.likelion.bebc25.linkup.post.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,14 @@ public class PostController {
         PostCreateResponse response = postService.createPost(memberId, request, images, file);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailResponse> getPostDetail(
+            @PathVariable Long postId
+    ) {
+        PostDetailResponse response = postService.getPostDetailById(postId);
+
+        return ResponseEntity.ok(response);
     }
 }

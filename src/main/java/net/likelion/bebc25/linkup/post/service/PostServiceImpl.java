@@ -6,6 +6,7 @@ import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.domain.PostImage;
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
+import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
 import net.likelion.bebc25.linkup.post.mapper.PostImageMapper;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +28,8 @@ public class PostServiceImpl implements PostService {
     private static final int MAX_IMAGE_COUNT = 5;
     private static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;
     private static final long MAX_FILE_SIZE = 100L *  1024 * 1024;
-    private static final String POST_IMAGE_DIRECTORY = "posts/images";
-    private static final String POST_FILE_DIRECTORY = "posts/files";
+    private static final String POST_IMAGE_DIRECTORY = "posts/images/";
+    private static final String POST_FILE_DIRECTORY = "posts/files/";
 
     private final PostMapper postMapper;
     private final PostImageMapper postImageMapper;
@@ -77,6 +79,19 @@ public class PostServiceImpl implements PostService {
 
 
         return PostCreateResponse.from(post);
+    }
+
+    @Override
+    public PostDetailResponse getPostDetailById(Long postId) {
+        Post post = postMapper.findById(postId);
+
+        if (post == null) {
+            throw new NoSuchElementException("존재하지 않는 게시글입니다.");
+        }
+
+        List<PostImage> images = postImageMapper.findAllByPostId(postId);
+
+        return PostDetailResponse.from(post, images);
     }
 
     // 이미지 파일 검증

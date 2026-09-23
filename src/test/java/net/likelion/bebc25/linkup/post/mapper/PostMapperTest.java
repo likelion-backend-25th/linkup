@@ -1,6 +1,7 @@
 package net.likelion.bebc25.linkup.post.mapper;
 
 import net.likelion.bebc25.linkup.post.domain.Post;
+import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class PostMapperTest {
     private PostMapper postMapper;
 
     @Test
-    @DisplayName("신규 게시글 등록")
+    @DisplayName("신규 게시글 등록 및 조회 테스트")
     public void createPostTest() {
         // given
         Post post = Post.builder()
@@ -28,9 +29,13 @@ public class PostMapperTest {
 
         // when
         int result = postMapper.insert(post);
+        Post postDetail = postMapper.findById(post.getId());
 
         // then
         assertThat(result).isEqualTo(1);
         assertThat(post.getId()).isNotNull();
+        assertThat(postDetail.getMemberId()).isEqualTo(1L);
+        assertThat(postDetail.getContent()).isEqualTo("테스트 게시글");
+        assertThat(postDetail.isSubscriberOnly()).isEqualTo(false);
     }
 }

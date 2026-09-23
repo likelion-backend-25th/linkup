@@ -2,6 +2,7 @@ package net.likelion.bebc25.linkup.post.service;
 
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
+import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ class PostServiceTest {
     private PostService postService;
 
     @Test
-    @DisplayName("일반 사용자는 여러 이미지를 등록할 수 있지만 파일 첨부는 할 수 없음")
+    @DisplayName("게시글 등록 및 조회 테스트")
     void createPostByUser() throws IOException {
         // given
         Long memberId = 2L;
@@ -43,7 +44,7 @@ class PostServiceTest {
 
         // when
         // 1. 첨부 파일이 없으면 등록 성공
-        PostCreateResponse response = postService.createPost(memberId, request, images, null);
+        PostCreateResponse postCreateResponse = postService.createPost(memberId, request, images, null);
 
         // 2. 첨부 파일이 있으면 등록 거절
         MockMultipartFile file = new MockMultipartFile(
@@ -52,14 +53,24 @@ class PostServiceTest {
                 "application/pdf",
                 "file".getBytes()
         );
+        // 3. 등록한 게시글 단 건 조회
+        PostDetailResponse postDetailResponse = postService.getPostDetailById(postCreateResponse.id());
 
         // then
         // 1. 첨부 파일이 없으면 등록 성공
-        assertThat(response).isNotNull();
+        assertThat(postCreateResponse).isNotNull();
         // 2. 첨부 파일이 있으면 등록 거절
         assertThatThrownBy(() -> postService.createPost(memberId, request, images, file))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
+
+        assertThat(postDetailResponse).isNotNull();
+        assertThat(postDetailResponse.id()).isEqualTo(postCreateResponse.id());
+        assertThat(postDetailResponse.content()).isEqualTo("일반 사용자 게시글");
+        assertThat(postDetailResponse.images().get(0).imageOrder()).isEqualTo(0);
+        assertThat(postDetailResponse.images().get(1).imageOrder()).isEqualTo(1);
+        assertThat(postDetailResponse.images().get(0).imageUrl()).startsWith("/uploads/posts/images/");
+        assertThat(postDetailResponse.images().get(1).imageUrl()).startsWith("/uploads/posts/images/");
     }
 
     private MockMultipartFile createImage(String fileName) throws IOException {

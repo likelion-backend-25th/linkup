@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
@@ -20,7 +22,7 @@ public class PostImageMapperTest {
     private PostImageMapper postImageMapper;
 
     @Test
-    @DisplayName("게시글 이미지를 저장 테스트")
+    @DisplayName("게시글 이미지를 저장 및 조회 테스트")
     void insertPostImage() {
         // given
         Post post = Post.builder()
@@ -31,16 +33,29 @@ public class PostImageMapperTest {
 
         postMapper.insert(post);
 
-        PostImage postImage = PostImage.builder()
+        PostImage postImage1 = PostImage.builder()
                 .postId(post.getId())
-                .imageUrl("/uploads/test-image.png")
+                .imageUrl("/uploads/test-image1.png")
                 .imageOrder(0)
                 .build();
 
+        PostImage postImage2 = PostImage.builder()
+                .postId(post.getId())
+                .imageUrl("/uploads/test-image2.png")
+                .imageOrder(1)
+                .build();
+
         // when
-        postImageMapper.insert(postImage);
+        postImageMapper.insert(postImage1);
+        postImageMapper.insert(postImage2);
+        List<PostImage> images = postImageMapper.findAllByPostId(post.getId());
 
         // then
-        assertThat(postImage.getId()).isNotNull();
+        assertThat(postImage1.getId()).isNotNull();
+        assertThat(images.get(0).getImageUrl()).isEqualTo("/uploads/test-image1.png");
+        assertThat(images.get(1).getImageUrl()).isEqualTo("/uploads/test-image2.png");
+
+        assertThat(images.get(0).getImageOrder()).isEqualTo(0);
+        assertThat(images.get(1).getImageOrder()).isEqualTo(1);
     }
 }
