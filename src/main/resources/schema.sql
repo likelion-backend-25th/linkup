@@ -287,13 +287,13 @@ CREATE TABLE subscription (
 CREATE TABLE payment (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id BIGINT NOT NULL,
+    subscription_id BIGINT NOT NULL,
     imp_uid VARCHAR(100) NULL,
     merchant_uid VARCHAR(100) NOT NULL UNIQUE,
     amount INT NOT NULL,
     status VARCHAR(20) NOT NULL,
     pay_method VARCHAR(30) NOT NULL,
     paid_at DATETIME NULL,
-    subscription_id BIGINT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_payment_member

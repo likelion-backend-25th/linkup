@@ -4,9 +4,9 @@ spring:
   # 데이터베이스 접속 정보
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/linkup_db?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
-    username: ${SPRING_DATASOURCE_USERNAME:linkup_app}
-    password: ${SPRING_DATASOURCE_PASSWORD:Linkup1234!}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${MYSQL_DATABASE}?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   # 데이터베이스 초기화 설정 (애플리케이션 구동 시 schema.sql 및 data.sql 자동 실행)
   sql:

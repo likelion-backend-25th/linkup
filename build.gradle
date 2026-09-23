@@ -47,4 +47,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Mockito 동적 에이전트 및 CDS 공유 경고 비활성화
+    jvmArgs('-XX:+EnableDynamicAgentLoading', '-Xshare:off')
 }
