@@ -213,7 +213,6 @@ CREATE TABLE notification (
     receiver_id BIGINT NOT NULL,
     sender_id BIGINT NOT NULL,
     type VARCHAR(100) NOT NULL,
-    reference_id BIGINT NOT NULL,
     content VARCHAR(255) NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
