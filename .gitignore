@@ -1,5 +1,4 @@
 uploads
-/src/main/resources/application.yaml
 
 # 보안 키 및 환경 변수 파일 유출 차단
 **/*.pem

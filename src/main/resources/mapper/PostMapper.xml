@@ -11,4 +11,11 @@
         VALUES ( #{memberId}, #{content}, #{fileUrl}, #{subscriberOnly} )
     </insert>
 
+    <!-- 게시글 상세 조회 -->
+    <select id="findById" parameterType="long" resultType="Post">
+        SELECT id, member_id, content, file_url, like_count, subscriber_only, created_at, updated_at
+        FROM post
+        WHERE id = #{postId}
+    </select>
+
 </mapper>
