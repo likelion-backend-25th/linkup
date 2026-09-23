@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.admin.mapper.AdminPaymentMapper">
+
+    <!-- 결제 목록 조회용 공통 컬럼 -->
+    <sql id="paymentListColumns">
+        p.id AS payment_id,
+        p.paid_at AS payment_date,
+        seller.name AS seller_nickname,
+        buyer.name AS buyer_nickname,
+        p.amount AS amount,
+        p.status AS payment_status
+    </sql>
+
+    <!-- 결제 상세 조회용 공통 컬럼 -->
+    <sql id="paymentDetailColumns">
+        p.id AS payment_id,
+        p.paid_at AS payment_date,
+
+        buyer.name AS buyer_nickname,
+        buyer.unique_id AS buyer_id,
+
+        p.amount AS amount,
+        p.status AS payment_status,
+        p.pay_method AS payment_method,
+        p.merchant_uid AS merchant_uid,
+        p.imp_uid AS imp_uid,
+
+        seller.name AS seller_nickname,
+        seller.unique_id AS seller_id,
+
+        s.start_date AS sub_start_date,
+        s.end_date AS sub_end_date,
+        s.next_billing_at AS next_billing_at,
+        s.status AS sub_status
+    </sql>
+
+
+    <!-- 1. 관리자 결제 목록 조회 -->
+    <select id="findPayments"
+            parameterType="net.likelion.bebc25.linkup.admin.dto.AdminPaymentSearchRequest"
+            resultType="net.likelion.bebc25.linkup.admin.dto.AdminPaymentResponse">
+
+        SELECT
+        <include refid="paymentListColumns" />
+
+        FROM payment p
+
+        <!-- 구매자 -->
+        INNER JOIN member buyer
+        ON p.member_id = buyer.id
+
+        <!-- 결제와 연결된 구독 -->
+        INNER JOIN subscription s
+        ON p.subscription_id = s.id
+
+        <!-- 구독의 크리에이터 = 판매자 -->
+        INNER JOIN member seller
+        ON s.creator_id = seller.id
+
+        <where>
+
+            <!-- 닉네임 또는 아이디 검색 -->
+            <if test="keyword != null and keyword != ''">
+                AND (
+                buyer.name LIKE CONCAT('%', #{keyword}, '%')
+                OR buyer.unique_id LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+
+            <!-- 결제 상태 검색 -->
+            <if test="paymentStatus != null and paymentStatus != ''">
+                AND p.status = #{paymentStatus}
+            </if>
+
+            <!-- 조회 시작 날짜 -->
+            <if test="startDate != null">
+                AND p.paid_at &gt;= #{startDate}
+            </if>
+
+            <!-- 조회 종료 날짜 -->
+            <if test="endDate != null">
+                AND p.paid_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            </if>
+
+        </where>
+
+        ORDER BY p.paid_at DESC
+
+        LIMIT #{size}
+        OFFSET #{offset}
+
+    </select>
+
+
+    <!-- 2. 관리자 결제 전체 개수 조회 -->
+    <select id="countPayments"
+            parameterType="net.likelion.bebc25.linkup.admin.dto.AdminPaymentSearchRequest"
+            resultType="long">
+
+        SELECT COUNT(*)
+
+        FROM payment p
+
+        <!-- 구매자 -->
+        INNER JOIN member buyer
+            ON p.member_id = buyer.id
+
+        <!-- 결제와 연결된 구독 -->
+        INNER JOIN subscription s
+            ON p.subscription_id = s.id
+
+        <!-- 구독의 크리에이터 = 판매자 -->
+        INNER JOIN member seller
+            ON s.creator_id = seller.id
+
+        <where>
+
+            <!-- 닉네임 또는 아이디 검색 -->
+            <if test="keyword != null and keyword != ''">
+                AND (
+                buyer.name LIKE CONCAT('%', #{keyword}, '%')
+                OR buyer.unique_id LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+
+            <!-- 결제 상태 검색 -->
+            <if test="paymentStatus != null and paymentStatus != ''">
+                AND p.status = #{paymentStatus}
+            </if>
+
+            <!-- 조회 시작 날짜 -->
+            <if test="startDate != null">
+                AND p.paid_at &gt;= #{startDate}
+            </if>
+
+            <!-- 조회 종료 날짜 -->
+            <if test="endDate != null">
+                AND p.paid_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            </if>
+
+        </where>
+
+    </select>
+
+
+    <!-- 3. 관리자 결제 상세 조회 -->
+    <select id="findPaymentDetail"
+            parameterType="long"
+            resultType="net.likelion.bebc25.linkup.admin.dto.AdminPaymentDetailResponse">
+
+        SELECT
+        <include refid="paymentDetailColumns" />
+
+        FROM payment p
+
+        <!-- 구매자 -->
+        INNER JOIN member buyer
+            ON p.member_id = buyer.id
+
+        <!-- 결제와 연결된 구독 -->
+        INNER JOIN subscription s
+            ON p.subscription_id = s.id
+
+        <!-- 구독의 크리에이터 = 판매자 -->
+        INNER JOIN member seller
+            ON s.creator_id = seller.id
+
+        WHERE p.id = #{paymentId}
+
+    </select>
+
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.member.mapper.MemberMapper">
+
+    <!-- 이메일 기반 회원 정보 조회 -->
+    <select id="findByEmail"
+            resultType="net.likelion.bebc25.linkup.member.domain.Member">
+        SELECT
+        id,
+        email,
+        name,
+        unique_id,
+        profile_image,
+        introduction,
+        role,
+        warning_count,
+        writing_restricted_until,
+        created_at,
+        updated_at
+        FROM member
+        WHERE email = #{email}
+    </select>
+
+    <!-- 회원 id 기반 정보 조회 -->
+    <select id="findById"
+            resultType="net.likelion.bebc25.linkup.member.domain.Member">
+        SELECT
+        id,
+        email,
+        name,
+        unique_id,
+        profile_image,
+        introduction,
+        role,
+        warning_count,
+        writing_restricted_until,
+        created_at,
+        updated_at
+        FROM member
+        WHERE id = #{id}
+    </select>
+
+    <!-- 신규 회원 등록 -->
+    <insert id="save"
+            parameterType="net.likelion.bebc25.linkup.member.domain.Member"
+            useGeneratedKeys="true"
+            keyProperty="id">
+
+        INSERT INTO member (
+        email,
+        password,
+        name,
+        unique_id,
+        profile_image,
+        introduction,
+        role
+        )
+        VALUES (
+        #{email},
+        #{password},
+        #{name},
+        #{uniqueId},
+        #{profileImage},
+        #{introduction},
+        #{role}
+        )
+
+    </insert>
+
+</mapper>
