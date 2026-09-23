@@ -2,9 +2,13 @@ name: 05 Full CI/CD Pipeline
 
 on:
   push:
-    branches: [ "**" ]
+    branches-ignore:
+      - main
+      - dev
   pull_request:
-    branches: [ "dev" ]
+    branches:
+      - main
+      - dev
 
 jobs:
   integration-test:

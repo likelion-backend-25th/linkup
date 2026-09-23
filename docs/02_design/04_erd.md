@@ -51,6 +51,8 @@ erDiagram
         varchar role "ROLE_USER, ROLE_CREATOR, ROLE_ADMIN"
         int warning_count "경고 횟수"
         datetime writing_restricted_time "글쓰기 제한 기간"
+        int following_count "내가 팔로우하는 사람 수"
+        int follower_count "나를 팔로우하는 사람 수"       
         datetime created_at "계정 생성 일시"
         datetime updated_at "계정 수정 일시"
     }
@@ -124,7 +126,6 @@ erDiagram
         bigint receiver_id FK "알림 수신자 회원 ID"
         bigint sender_id FK "알림 발생자 회원 ID"
         varchar type "알림 유형"
-        bigint reference_id "알림 대상 리소스 ID"
         varchar content "알림 내용"
         boolean is_read "읽음 여부"
         datetime created_at "알림 생성 일시"
@@ -151,8 +152,8 @@ erDiagram
 
     PAYMENT {
         bigint id PK "결제 내역 식별자"
-        bigint subscription_id FK "구독 ID"
         bigint member_id FK "결제 회원 ID"
+        bigint subscription_id FK "구독 정보 ID"
         varchar imp_uid "결제 승인 고유번호"
         varchar merchant_uid UK "자체 생성 주문 식별자"
         int amount "결제 금액"
@@ -171,15 +172,17 @@ erDiagram
 | --- | --- | --- | --- |
 | id | BIGINT | PK, AUTO_INCREMENT | 회원 고유 식별자 |
 | email | VARCHAR(100) | NOT NULL, UNIQUE | 로그인 아이디 (이메일) |
-| password | VARCHAR(255) | NULL | BCrypt 암호화된 비밀번호 |
+| password | VARCHAR(255) | NOT NULL | BCrypt 암호화된 비밀번호 |
 | name | VARCHAR(50) | NOT NULL | 화면 표시용 닉네임 |
 | unique_id | VARCHAR(50) | NOT NULL, UNIQUE | 화면 표시, 회원 식별용 아이디 / 가입 시 이메일 @ 앞부분으로 자동 생성되며 이후 수정 가능 |
 | profile_image | VARCHAR(255) | NULL | AWS S3 프로필 사진 URL |
 | introduction | TEXT | NULL | 자기소개 |
 | role | VARCHAR(20) | NOT NULL, DEFAULT 'ROLE_USER' | 권한 (ROLE_USER, ROLE_CREATOR, ROLE_ADMIN) |
-| warning_count | INT | NOT NULL, DEFAULT 0 | 경고 횟수 (1회: 단순 경고, 2회: 글쓰기 기간 제한, 3회: 회원 탈퇴) |
+| warning_count | INT | NOT NULL, DEFAULT 0 | 경고 횟수 (1회: 단순 경고, 2회: 글쓰기 기간 제한, 3회: 회원 정지) |
 | writing_restricted_time | DATETIME | NULL | 글쓰기 제한 기간 
 (경고 2회시 해당 시간으로부터 7일 제한) |
+| following_count | INT | NOT NULL, DEFAULT 0 | 내가 팔로우 하는 사람 수 |
+| follower_count | INT | NOT NULL, DEFAULT 0 | 나를 팔로우 하는 사람 수 |
 | created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 계정 생성 일시 |
 | updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP ON UPDATE | 계정 수정 일시 |
 
@@ -271,7 +274,6 @@ erDiagram
 | receiver_id | BIGINT | NOT NULL, FK (member.id ON DELETE CASCADE) | 알림 수신자 회원 ID |
 | sender_id | BIGINT | NOT NULL, FK (member.id ON DELETE CASCADE) | 알림 발생자 회원 ID |
 | type | VARCHAR(100) | NOT NULL,VARCHAR(100) | 알림 유형 |
-| reference_id | BIGINT | NOT NULL |  |
 | content | VARCHAR(255) | NOT NULL | 알림 내용 |
 | is_read | BOOLEAN | NOT NULL, DEFAULT FALSE | 읽음 상태 |
 | created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 알림 생성 일시 |
@@ -300,12 +302,13 @@ erDiagram
 | status | VARCHAR(20) | NOT NULL | 구독 상태 (ACTIVE, CANCELLED) |
 | next_billing_at | DATETIME | NOT NULL | 다음 자동 결제 예정일 |
 
-### 2.12 payment (결제 이력)
+### **2.12 payment (결제 이력)**
 
 | **컬럼명** | **데이터 타입** | **제약 조건** | **설명** |
 | --- | --- | --- | --- |
 | id | BIGINT | PK, AUTO_INCREMENT | 결제 내역 식별자 |
 | member_id | BIGINT | NOT NULL, FK (member.id ON DELETE CASCADE) | 결제 회원 ID |
+| subscription_id | BIGINT | NOT NULL, FK (subscription.id ON DELETE CASCADE) | 구독 정보 ID |
 | imp_uid | VARCHAR(100) | NULL | 결제 승인 고유 번호 |
 | merchant_uid | VARCHAR(100) | NOT NULL, UNIQUE | 자체 생성 주문 식별자 (예: ORD_20260917_001) |
 | amount | INT | NOT NULL | 결제 금액 |
@@ -517,7 +520,6 @@ CREATE TABLE notification (
                             receiver_id BIGINT NOT NULL,
                             sender_id BIGINT NOT NULL,
                             type VARCHAR(100) NOT NULL,
-                            reference_id BIGINT NOT NULL,
                             content VARCHAR(255) NOT NULL,
                             is_read BOOLEAN NOT NULL DEFAULT FALSE,
                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -593,6 +595,7 @@ CREATE TABLE subscription (
 CREATE TABLE payment (
                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
                        member_id BIGINT NOT NULL,
+                       subscription_id BIGINT NOT NULL,
                        imp_uid VARCHAR(100) NULL,
                        merchant_uid VARCHAR(100) NOT NULL UNIQUE,
                        amount INT NOT NULL,
@@ -604,6 +607,11 @@ CREATE TABLE payment (
                        CONSTRAINT fk_payment_member
                          FOREIGN KEY (member_id)
                            REFERENCES member(id)
+                           ON DELETE CASCADE
+
+                       CONSTRAINT fk_payment_subscription
+                         FOREIGN KEY (subscription_id)
+                           REFERENCES subscription(id)
                            ON DELETE CASCADE
 );
 ```

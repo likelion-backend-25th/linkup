@@ -24,8 +24,10 @@ CREATE TABLE member (
     profile_image VARCHAR(255) NULL,
     introduction TEXT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER',
-    warning_count int NOT NULL DEFAULT 0,
+    warning_count INT NOT NULL DEFAULT 0,
     writing_restricted_until DATETIME NULL,
+    following_count INT NOT NULL DEFAULT 0,
+    follower_count INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
@@ -211,7 +213,6 @@ CREATE TABLE notification (
     receiver_id BIGINT NOT NULL,
     sender_id BIGINT NOT NULL,
     type VARCHAR(100) NOT NULL,
-    reference_id BIGINT NOT NULL,
     content VARCHAR(255) NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
