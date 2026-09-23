@@ -16,27 +16,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 공격 방어 기능 비활성화
                 .csrf(csrf -> csrf.disable())
-
-                // HTTP 기본 인증 비활성화
                 .httpBasic(basic -> basic.disable())
-
-                // 기본 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
 
-                // URL 엔드포인트별 기본 접근 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
                         .anyRequest().permitAll()
                 )
 
-                // OAuth2 로그인
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
                         .defaultSuccessUrl("/", true)
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                 );
 
         return http.build();
