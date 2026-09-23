@@ -6,7 +6,29 @@
 <mapper namespace="net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper">
 
     <sql id="subscriptionColumns">
-        id, creator_id, member_id, customer_uid, price, start_date, end_date, status, next_billing_at
+        id AS subscription_id,
+        creator_id,
+        member_id,
+        customer_uid,
+        price,
+        start_date,
+        end_date,
+        status,
+        next_billing_at
+    </sql>
+
+    <sql id="subscribeCreatorListColumns">
+        s.id AS subscription_id,
+        s.member_id AS member_id,
+        s.creator_id AS creator_id,
+        m.name AS creator_name,
+        m.unique_id AS creator_unique_id,
+        m.profile_image AS profile_image,
+        m.introduction AS introduction,
+        s.status AS status,
+        s.start_date AS start_date,
+        s.end_date AS end_date,
+        s.next_billing_at AS next_billing_at
     </sql>
 
     <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
@@ -18,6 +40,19 @@
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
         WHERE creator_id = #{creatorId}
+    </select>
+
+    <select id="findByMemberId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
+        SELECT <include refid="subscriptionColumns" />
+        FROM subscription
+        WHERE member_id = #{memberId}
+    </select>
+
+    <select id="findSubscribeCreatorList" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse">
+        SELECT <include refid="subscribeCreatorListColumns" />
+        FROM subscription as s
+        JOIN member m ON m.id = s.creator_id
+        WHERE member_id = #{memberId}
     </select>
 
 </mapper>
