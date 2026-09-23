@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.mapper;
 
+import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,34 @@ public class SubscriptionMapperTest {
         assertThat(subList).isNotNull();
         for (SubscriptionResponse sub : subList) {
             assertThat(sub.creatorId()).isEqualTo(targetCreatorId);
+            System.out.println(sub.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("특정 사용자가 구독하고 있는 상품 조회 테스트")
+    void findByMemberIdTest() {
+        Long targetMemberId = 1L;
+
+        List<SubscriptionResponse> subList = subscriptionMapper.findByMemberId(targetMemberId);
+
+        assertThat(subList).isNotNull();
+        for (SubscriptionResponse sub : subList) {
+            assertThat(sub.memberId()).isEqualTo(targetMemberId);
+            System.out.println(sub.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("특정 사용자가 구독하고 있는 크리에이터 목록 테스트")
+    void findSubscribeCreatorListTest() {
+        Long targetMemberId = 1L;
+
+        List<SubscribeCreatorListResponse> subList = subscriptionMapper.findSubscribeCreatorList(targetMemberId);
+
+        assertThat(subList).isNotNull();
+        for (SubscribeCreatorListResponse sub : subList) {
+            assertThat(sub.memberId()).isEqualTo(targetMemberId);
             System.out.println(sub.toString());
         }
     }
