@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.post.service;
 
+import net.likelion.bebc25.linkup.post.dto.FollowingFeedResponse;
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
 import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
