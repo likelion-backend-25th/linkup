@@ -2,7 +2,7 @@ package net.likelion.bebc25.linkup.post.dto;
 
 import java.time.LocalDateTime;
 
-public record PostFeedResponse (
+public record PostCardResponse(
         Long postId,
         Long memberId,
         String memberName,

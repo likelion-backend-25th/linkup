@@ -1,15 +1,11 @@
 package net.likelion.bebc25.linkup.post.mapper;
 
 import net.likelion.bebc25.linkup.post.domain.Post;
-import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
-import net.likelion.bebc25.linkup.post.dto.PostFeedResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -2,8 +2,8 @@ package net.likelion.bebc25.linkup.post.dto;
 
 import java.util.List;
 
-public record FollowingFeedResponse (
-        List<PostFeedResponse> posts,
+public record FeedResponse(
+        List<PostCardResponse> posts,
         Long nextCursor,
         boolean hasNext
 ) {

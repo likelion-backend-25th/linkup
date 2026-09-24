@@ -1,7 +1,9 @@
 package net.likelion.bebc25.linkup.post.controller;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.post.dto.FollowingFeedResponse;
+import net.likelion.bebc25.linkup.post.dto.FeedResponse;
 import net.likelion.bebc25.linkup.post.service.FeedService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,16 +19,28 @@ public class FeedController {
     private final FeedService feedService;
 
     @GetMapping("/following")
-    public ResponseEntity<FollowingFeedResponse> getFollowingFeed(
+    public ResponseEntity<FeedResponse> getFollowingFeed(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
     ) {
         Long memberId = 1L;
 
-        FollowingFeedResponse response =
+        FeedResponse response =
                 feedService.getFollowingFeed(memberId, cursor, size);
 
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/subscription")
+    public ResponseEntity<FeedResponse> getSubscriptionFeed(
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+    ) {
+        Long memberId = 1L;
+
+        FeedResponse response =
+                feedService.getSubscriptionFeed(memberId, cursor, size);
+
+        return ResponseEntity.ok(response);
+    }
 }
