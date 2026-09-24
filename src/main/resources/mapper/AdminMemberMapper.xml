@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.likelion.bebc25.linkup.admin.mapper.AdminMemberMapper">
+
+    <!--   회원 목록 조회     -->
+    <select id="findMembers" resultType="net.likelion.bebc25.linkup.admin.dto.AdminMemberResponse">
+        Select
+            m.id,
+            m.profile_image,
+            m.name AS nickname,
+            m.unique_id AS user_id,
+            m.status AS member_status,
+
+            CASE
+                WHEN m.role = 'ROLE_CREATOR' THEN 'CREATOR'
+                WHEN m.role = 'ROLE_USER' THEN 'USER'
+                ELSE 'NONE'
+            END AS creator_status,
+            m.created_at
+
+        FROM member m
+        WHERE 1 = 1
+
+        <!--   닉네임/아이디 검색     -->
+        <if test="keyword != null and keyword != ''">
+
+            <choose>
+                <!-- 닉네임 검색 -->
+                <when test="searchType == 'nickname'">
+                    AND m.name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+
+                <!-- 사용자 아이디 검색 -->
+                <when test="searchType == 'userId'">
+                    AND m.unique_id LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+            </choose>
+        </if>
+
+        <!-- 회원 상태 -->
+        <if test="memberStatus != null and memberStatus != ''">
+            AND m.status = #{memberStatus}
+        </if>
+
+        <!-- 크리에이터 상태 -->
+        <if test="creatorStatus != null and creatorStatus != ''">
+            <choose>
+                <when test="creatorStatus == 'CREATOR'">
+                    AND m.role = 'ROLE_CREATOR'
+                </when>
+
+                <when test="creatorStatus == 'USER'">
+                    AND m.role = 'ROLE_USER'
+                </when>
+            </choose>
+        </if>
+        ORDER BY m.created_at DESC
+
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="countMembers" resultType="int">
+        Select COUNT(*)
+        FROM member m
+        WHERE 1 = 1
+
+        <!--   닉네임/아이디 검색     -->
+        <if test="keyword != null and keyword != ''">
+
+            <choose>
+                <!-- 닉네임 검색 -->
+                <when test="searchType == 'nickname'">
+                    AND m.name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+
+                <!-- 회원 아이디 검색 -->
+                <when test="searchType == 'userId'">
+                    AND m.unique_id LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+            </choose>
+        </if>
+
+        <!-- 회원 상태 -->
+        <if test="memberStatus != null and memberStatus != ''">
+            AND m.status = #{memberStatus}
+        </if>
+
+        <!-- 크리에이터 상태 -->
+        <if test="creatorStatus != null and creatorStatus != ''">
+            <choose>
+                <when test="creatorStatus == 'CREATOR'">
+                    AND m.role = 'ROLE_CREATOR'
+                </when>
+
+                <when test="creatorStatus == 'USER'">
+                    AND m.role = 'ROLE_USER'
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 관리자 회원 상세 조회 -->
+    <select id="findMemberDetail" resultType="net.likelion.bebc25.linkup.admin.dto.AdminMemberDetailResponse">
+        SELECT
+            m.id,
+            m.profile_image,
+            m.name AS nickname,
+            m.unique_id AS user_id,
+            m.email,
+            m.status AS member_status,
+
+        CASE
+            WHEN m.role = 'ROLE_CREATOR' THEN 'CREATOR'
+            WHEN m.role = 'ROLE_USER' THEN 'USER'
+            ELSE 'NONE'
+        END AS creator_status,
+        m.created_at,
+
+        <!-- 크리에이터 구독 가격 -->
+        CASE
+            WHEN m.role = 'ROLE_CREATOR' THEN 4900
+            ELSE NULL
+        END AS subscription_price,
+
+        <!-- 현재 활성 구독자 수 -->
+        (
+            SELECT COUNT(*)
+            FROM subscription s
+            WHERE s.creator_id = m.id
+                AND s.status = 'ACTIVE'
+        ) AS subscriber_count
+
+        FROM member m
+        WHERE m.id = #{memberId}
+
+    </select>
+</mapper>

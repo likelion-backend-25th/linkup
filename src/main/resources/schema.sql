@@ -24,6 +24,7 @@ CREATE TABLE member (
     profile_image VARCHAR(255) NULL,
     introduction TEXT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     warning_count INT NOT NULL DEFAULT 0,
     writing_restricted_until DATETIME NULL,
     following_count INT NOT NULL DEFAULT 0,
