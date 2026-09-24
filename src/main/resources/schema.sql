@@ -180,6 +180,7 @@ CREATE TABLE report (
     reply_id BIGINT NULL,
     target_type VARCHAR(20) NOT NULL,
     reason TEXT NOT NULL,
+    content TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'WAIT',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
