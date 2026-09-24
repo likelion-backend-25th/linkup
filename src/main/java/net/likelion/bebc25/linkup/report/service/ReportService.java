@@ -6,4 +6,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface ReportService {
     void createdPostReport(Long memberId, Long postId, ReportCreateRequest request);
+
+//    void createdReplyReport(Long memerId, Long postId, ReportCreateRequest request);
 }
