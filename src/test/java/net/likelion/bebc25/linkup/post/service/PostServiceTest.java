@@ -67,8 +67,8 @@ class PostServiceTest {
         assertThat(postDetailResponse).isNotNull();
         assertThat(postDetailResponse.id()).isEqualTo(postCreateResponse.id());
         assertThat(postDetailResponse.content()).isEqualTo("일반 사용자 게시글");
-        assertThat(postDetailResponse.images().get(0).imageOrder()).isEqualTo(0);
-        assertThat(postDetailResponse.images().get(1).imageOrder()).isEqualTo(1);
+        assertThat(postDetailResponse.images().get(0).imageOrder()).isEqualTo(1);
+        assertThat(postDetailResponse.images().get(1).imageOrder()).isEqualTo(2);
         assertThat(postDetailResponse.images().get(0).imageUrl()).startsWith("/uploads/posts/images/");
         assertThat(postDetailResponse.images().get(1).imageUrl()).startsWith("/uploads/posts/images/");
     }

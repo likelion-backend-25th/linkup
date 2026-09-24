@@ -36,13 +36,13 @@ public class PostImageMapperTest {
         PostImage postImage1 = PostImage.builder()
                 .postId(post.getId())
                 .imageUrl("/uploads/test-image1.png")
-                .imageOrder(0)
+                .imageOrder(1)
                 .build();
 
         PostImage postImage2 = PostImage.builder()
                 .postId(post.getId())
                 .imageUrl("/uploads/test-image2.png")
-                .imageOrder(1)
+                .imageOrder(2)
                 .build();
 
         // when
@@ -55,7 +55,7 @@ public class PostImageMapperTest {
         assertThat(images.get(0).getImageUrl()).isEqualTo("/uploads/test-image1.png");
         assertThat(images.get(1).getImageUrl()).isEqualTo("/uploads/test-image2.png");
 
-        assertThat(images.get(0).getImageOrder()).isEqualTo(0);
-        assertThat(images.get(1).getImageOrder()).isEqualTo(1);
+        assertThat(images.get(0).getImageOrder()).isEqualTo(1);
+        assertThat(images.get(1).getImageOrder()).isEqualTo(2);
     }
 }

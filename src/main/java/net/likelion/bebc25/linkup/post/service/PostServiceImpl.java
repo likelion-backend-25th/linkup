@@ -69,7 +69,7 @@ public class PostServiceImpl implements PostService {
             PostImage postImage = PostImage.builder()
                     .postId(post.getId())
                     .imageUrl(imageKey)
-                    .imageOrder(i)
+                    .imageOrder(i+1)
                     .build();
 
             postImageMapper.insert(postImage);
