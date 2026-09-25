@@ -16,4 +16,10 @@
         FROM post
         WHERE id = #{postId}
     </select>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM post
+        WHERE id = #{postId}
+    </delete>
 </mapper>

@@ -1,26 +1,33 @@
 package net.likelion.bebc25.linkup.post.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.domain.PostImage;
 import net.likelion.bebc25.linkup.post.dto.*;
 import net.likelion.bebc25.linkup.post.mapper.PostImageMapper;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PostServiceImpl implements PostService {
 
     private static final int MAX_IMAGE_COUNT = 5;
@@ -90,6 +97,52 @@ public class PostServiceImpl implements PostService {
         List<PostImage> images = postImageMapper.findAllByPostId(postId);
 
         return PostDetailResponse.from(post, images);
+    }
+
+    @Override
+    @Transactional
+    public void deletePost(Long memberId, Long postId) {
+        Post post = postMapper.findById(postId);
+
+        if (post == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."
+            );
+        }
+
+        if (!post.getMemberId().equals(memberId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "게시글을 삭제할 권한이 없습니다."
+            );
+        }
+
+        List<PostImage> postImages = postImageMapper.findAllByPostId(postId);
+        List<String> fileReferences = new ArrayList<>();
+
+        for (PostImage image : postImages) {
+            fileReferences.add(image.getImageUrl());
+        }
+
+        if (post.getFileUrl() != null) {
+            fileReferences.add(post.getFileUrl());
+        }
+
+        postMapper.deleteById(postId);
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        for (String reference : fileReferences) {
+                            try {
+                                fileStorageService.delete(reference);
+                            } catch (RuntimeException e) {
+                                log.error("게시글 파일 삭제 실패: {}", reference, e);
+                            }
+                        }
+                    }
+                }
+        );
     }
 
     // 이미지 파일 검증

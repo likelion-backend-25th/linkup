@@ -13,4 +13,7 @@ public interface PostService {
 
     // 게시글 단 건 조회
     PostDetailResponse getPostDetailById(Long id);
+
+    // 게시글 삭제
+    void deletePost(Long memberId, Long postId);
 }
