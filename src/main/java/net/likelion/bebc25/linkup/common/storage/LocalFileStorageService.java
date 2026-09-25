@@ -50,4 +50,27 @@ public class LocalFileStorageService implements FileStorageService {
             );
         }
     }
+
+    @Override
+    public void delete(String storedFileReference) {
+        String prefix = "/uploads/";
+
+        if (storedFileReference == null || !storedFileReference.startsWith(prefix)) {
+            throw new IllegalArgumentException("잘못된 파일 경로입니다.");
+        }
+
+        String relativePath = storedFileReference.substring(prefix.length());
+
+        Path targetPath = uploadPath.resolve(relativePath).normalize();
+
+        if (!targetPath.startsWith(uploadPath) || targetPath.equals(uploadPath)) {
+            throw new IllegalArgumentException("삭제할 수 없는 파일 경로입니다.");
+        }
+
+        try {
+            Files.deleteIfExists(targetPath);
+        } catch (IOException e) {
+            throw new IllegalStateException("파일 삭제에 실패했습니다.", e);
+        }
+    }
 }

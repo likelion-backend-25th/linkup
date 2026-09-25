@@ -37,4 +37,25 @@ public class PostMapperTest {
         assertThat(postDetail.getContent()).isEqualTo("테스트 게시글");
         assertThat(postDetail.isSubscriberOnly()).isEqualTo(false);
     }
+
+    @Test
+    @DisplayName("게시글 삭제 테스트")
+    public void deletePostByIdTest() {
+        // given
+        Post post = Post.builder()
+                .memberId(1L)
+                .content("삭제 테스트")
+                .fileUrl(null)
+                .subscriberOnly(false)
+                .build();
+        postMapper.insert(post);
+        Long postId = post.getId();
+
+        // when
+        int deletedCount = postMapper.deleteById(postId);
+
+        // then
+        assertThat(deletedCount).isEqualTo(1);
+        assertThat(postMapper.findById(postId)).isNull();
+    }
 }

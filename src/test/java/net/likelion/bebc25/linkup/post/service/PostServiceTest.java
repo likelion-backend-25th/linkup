@@ -1,16 +1,22 @@
 package net.likelion.bebc25.linkup.post.service;
 
+import net.likelion.bebc25.linkup.common.storage.FileStorageService;
+import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
 import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
+import net.likelion.bebc25.linkup.post.dto.PostImageResponse;
+import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -28,6 +34,10 @@ class PostServiceTest {
 
     @Autowired
     private PostService postService;
+    @Autowired
+    private PostMapper postMapper;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @Test
     @DisplayName("게시글 등록 및 조회 테스트")
@@ -71,6 +81,54 @@ class PostServiceTest {
         assertThat(postDetailResponse.images().get(1).imageOrder()).isEqualTo(2);
         assertThat(postDetailResponse.images().get(0).imageUrl()).startsWith("/uploads/posts/images/");
         assertThat(postDetailResponse.images().get(1).imageUrl()).startsWith("/uploads/posts/images/");
+
+        for (PostImageResponse image : postDetailResponse.images()) {
+            fileStorageService.delete(image.imageUrl());
+        }
+    }
+
+    @Test
+    @DisplayName("작성자의 게시글 삭제 테스트")
+    void deletePostByAuthor() {
+        // given
+        Post post = Post.builder()
+                .memberId(1L)
+                .content("삭제 테스트")
+                .build();
+
+        postMapper.insert(post);
+        Long postId = post.getId();
+
+        // 작성자가 삭제하는 경우
+        // when
+        postService.deletePost(1L, postId);
+
+        // then
+        assertThat(postMapper.findById(postId)).isNull();
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 회원의 게시글 삭제 테스트")
+    void deletePostByOtherMember() {
+        // given
+        Post post = Post.builder()
+                .memberId(1L)
+                .content("삭제 테스트")
+                .build();
+
+        postMapper.insert(post);
+        Long postId = post.getId();
+
+        // when & then
+        // 작성자가 아닌 회원이 삭제하는 경우
+        assertThatThrownBy(() ->
+                postService.deletePost(2L, postId)
+        )
+                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
+                        assertThat(exception.getStatusCode())
+                                .isEqualTo(HttpStatus.FORBIDDEN)
+                );
+        assertThat(postMapper.findById(postId)).isNotNull();
     }
 
     private MockMultipartFile createImage(String fileName) throws IOException {
