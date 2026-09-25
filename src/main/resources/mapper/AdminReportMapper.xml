@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.admin.mapper.AdminReportMapper">
+
+    <select id="findReports" resultType="net.likelion.bebc25.linkup.admin.dto.AdminReportResponse">
+        SELECT
+        r.id,
+        r.target_type AS targetType,
+        reporter.name AS reporterName,
+        target_member.name AS targetUserName,
+        p.content AS content,
+        r.reason,
+        r.created_at AS createdAt,
+        r.status
+
+        FROM report r
+        JOIN member reporter
+        ON reporter.id = r.member_id
+        LEFT JOIN post p
+        ON p.id = r.post_id
+        LEFT JOIN member target_member
+        ON target_member.id = p.member_id
+        WHERE 1 = 1
+
+        <if test="targetType != null and targetType != ''">
+            AND r.target_type = #{targetType}
+        </if>
+
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        ORDER BY r.created_at DESC
+
+        LIMIT #{size}
+        OFFSET #{offset}
+
+    </select>
+
+    <select id="findReportDetail" resultType="net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse">
+        SELECT
+            r.id,
+            r.target_type AS targetType,
+            reporter.name AS reporterName,
+            target_member.name AS targetUserName,
+            p.content AS content,
+            r.reason,
+            r.content AS reportContent,
+            r.created_at AS createdAt,
+            r.status
+
+        FROM report r
+        JOIN member reporter
+            ON reporter.id = r.member_id
+        LEFT JOIN post p
+            ON p.id = r.post_id
+        LEFT JOIN member target_member
+            ON target_member.id = p.member_id
+
+        WHERE r.id = #{reportId}
+
+    </select>
+
+</mapper>
