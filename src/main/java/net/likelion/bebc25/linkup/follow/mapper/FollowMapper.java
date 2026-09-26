@@ -28,6 +28,16 @@ public interface FollowMapper {
             @Param("targetId") Long targetId
     );
 
+    // 팔로잉 감소
+    void decrementFollowingCount (
+            @Param("memberId") Long memberId
+    );
+
+    // 팔로워 감소
+    void decrementFollowerCount (
+            @Param("memberId") Long memberId
+    );
+
     // 팔로우 상태 조회
     boolean isFollowing(
             @Param("memberId") Long memberId,

@@ -32,6 +32,20 @@
         AND target_id = #{targetId}
     </delete>
 
+    <!-- 팔로잉 감소 -->
+    <update id="decrementFollowingCount">
+        UPDATE member
+        SET following_count = following_count - 1
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 팔로우 감소-->
+    <update id ="decrementFollowerCount">
+        UPDATE member
+        SET follower_count = follower_count - 1
+        WHERE id = #{memberId}
+    </update>
+
     <!-- 팔로우 상태 조회 -->
     <select id="isFollowing" resultType="boolean">
         SELECT COUNT(*) > 0

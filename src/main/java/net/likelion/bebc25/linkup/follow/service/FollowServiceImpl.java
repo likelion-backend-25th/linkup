@@ -42,6 +42,9 @@ public class FollowServiceImpl implements FollowService {
         if (result == 0) {
             throw new IllegalArgumentException("팔로우 관계를 찾을 수 없습니다.");
         }
+
+        followMapper.decrementFollowingCount(memberId);
+        followMapper.decrementFollowerCount(targetId);
     }
 
     // 팔로우 상태 조회
