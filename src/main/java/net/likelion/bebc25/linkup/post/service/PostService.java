@@ -3,6 +3,7 @@ package net.likelion.bebc25.linkup.post.service;
 import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
 import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
 import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
+import net.likelion.bebc25.linkup.post.dto.PostUpdateRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -16,4 +17,7 @@ public interface PostService {
 
     // 게시글 삭제
     void deletePost(Long memberId, Long postId);
+
+    // 게시글 수정
+    void updatePost(Long postId, Long memberId, PostUpdateRequest request, MultipartFile file);
 }

@@ -41,7 +41,6 @@ public class LocalFileStorageService implements FileStorageService {
 
             return "/uploads/"
                     + directory
-                    + "/"
                     + storedFilename;
 
         } catch (IOException e) {

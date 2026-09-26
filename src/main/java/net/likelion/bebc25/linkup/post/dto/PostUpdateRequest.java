@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record PostCreateRequest(
+public record PostUpdateRequest(
         @Schema(
                 description = "게시글 본문 내용",
                 requiredMode = Schema.RequiredMode.REQUIRED
@@ -16,6 +16,9 @@ public record PostCreateRequest(
 
         @Schema(description = "구독자 전용 게시글 여부")
         @NotNull
-        boolean subscriberOnly
+        boolean subscriberOnly,
+
+        @Schema(description = "파일 삭제 여부")
+        boolean removeFile
 ) {
 }

@@ -145,6 +145,25 @@ public class PostServiceImpl implements PostService {
         );
     }
 
+    @Override
+    @Transactional
+    public void updatePost(Long postId, Long memberId, PostUpdateRequest request, MultipartFile file) {
+        Post existingPost = getOwnedPostOrThrow(postId, memberId);
+
+        String fileKey = resolveFileKey(existingPost, memberId, request, file);
+
+        Post post = Post.builder()
+                .id(postId)
+                .memberId(memberId)
+                .content(request.content())
+                .fileUrl(fileKey)
+                .subscriberOnly(request.subscriberOnly())
+                .build();
+        postMapper.updateById(post);
+
+        scheduleOldFileDeletion(existingPost.getFileUrl(), fileKey);
+    }
+
     // 이미지 파일 검증
     private void validateImages(List<MultipartFile> images) {
         if (images == null || images.isEmpty()) {
@@ -190,5 +209,72 @@ public class PostServiceImpl implements PostService {
     // 크리에이터인지 확인 (임시)
     private boolean isCreator(Long memberId) {
         return memberId == 1L;
+    }
+
+    // 게시글 조회, 작성자 본인 확인
+    private Post getOwnedPostOrThrow(Long postId, Long memberId) {
+        Post existingPost = postMapper.findById(postId);
+        if (existingPost == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."
+            );
+        }
+
+        if (!existingPost.getMemberId().equals(memberId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "게시글을 수정할 권한이 없습니다."
+            );
+        }
+
+        return existingPost;
+    }
+
+    // 수정할 게시글 규칙 검사 후 파일 업로드 후 파일 키 반환
+    private String resolveFileKey(Post existingPost, Long memberId,
+                                  PostUpdateRequest request, MultipartFile file) {
+        if (request.removeFile() && file != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "잘못된 요청입니다."
+            );
+        }
+
+        String fileKey = null;
+        if (request.removeFile()) {
+            fileKey = null;
+        } else if (file == null) {
+            fileKey = existingPost.getFileUrl();
+            if (!request.subscriberOnly() && fileKey != null) {
+                throw new IllegalArgumentException("첨부 파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
+            }
+        } else {
+            validateFile(file);
+            if (!isCreator(memberId)) {
+                throw new IllegalArgumentException("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
+            }
+            if (!request.subscriberOnly()) {
+                throw new IllegalArgumentException("첨부 파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
+            }
+            fileKey = fileStorageService.upload(file, POST_FILE_DIRECTORY);
+        }
+
+        return fileKey;
+    }
+
+    // 저장소에 존재하는 기존 파일 삭제 필요 유무 검사 후 삭제
+    private void scheduleOldFileDeletion(String oldKey, String fileKey) {
+        if (oldKey != null && !oldKey.equals(fileKey)) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            try {
+                                fileStorageService.delete(oldKey);
+                            } catch (RuntimeException e) {
+                                log.error("기존 첨부파일 삭제 실패: {}", oldKey, e);
+                            }
+                        }
+                    }
+            );
+        }
     }
 }

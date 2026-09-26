@@ -22,4 +22,13 @@
         DELETE FROM post
         WHERE id = #{postId}
     </delete>
+
+    <!-- 게시글 수정 -->
+    <update id="updateById" parameterType="Post">
+        UPDATE post
+        SET content = #{content},
+            file_url = #{fileUrl},
+            subscriber_only = #{subscriberOnly}
+        WHERE id = #{id}
+    </update>
 </mapper>
