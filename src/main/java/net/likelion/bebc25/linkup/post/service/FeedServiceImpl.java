@@ -33,7 +33,7 @@ public class FeedServiceImpl implements FeedService {
         boolean hasNext = result.size() > size;
 
         List<PostCardResponse> posts = List.copyOf(
-                result.subList(0, size)
+                result.subList(0, Math.min(result.size(), size))
         );
 
         Long nextCursor = hasNext
