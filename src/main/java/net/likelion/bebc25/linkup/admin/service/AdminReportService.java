@@ -1,6 +1,7 @@
 package net.likelion.bebc25.linkup.admin.service;
 
 import net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse;
+import net.likelion.bebc25.linkup.admin.dto.AdminReportProcessRequest;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportResponse;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportSearchRequest;
 
@@ -10,4 +11,6 @@ public interface AdminReportService {
     List<AdminReportResponse> getReports(AdminReportSearchRequest request);
 
     AdminReportDetailResponse getReportDetail(Long reportId);
+
+    void processReport(Long reportId, AdminReportProcessRequest request);
 }
