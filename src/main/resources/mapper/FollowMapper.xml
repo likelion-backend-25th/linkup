@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.follow.mapper.FollowMapper">
+
+    <!-- 팔로우 추가 -->
+    <insert id="addFollow">
+        INSERT INTO follow ( member_id, target_id )
+        VALUES ( #{memberId}, #{targetId} )
+    </insert>
+
+    <!-- 팔로잉 증가 -->
+    <update id="incrementFollowingCount">
+        UPDATE member
+        SET following_count = following_count + 1
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 팔로우 증가-->
+    <update id ="incrementFollowerCount">
+        UPDATE member
+        SET follower_count = follower_count + 1
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 팔로우 취소 -->
+    <delete id="deleteFollow">
+        DELETE FROM follow
+        WHERE member_id = #{memberId}
+        AND target_id = #{targetId}
+    </delete>
+
+    <!-- 팔로우 상태 조회 -->
+    <select id="isFollowing" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM follow
+        WHERE member_id = #{memberId}
+        AND target_id = #{targetId}
+    </select>
+
+    <!-- 팔로워 수 -->
+    <select id="countFollowers" resultType="int">
+        SELECT COUNT(*)
+        FROM follow
+        WHERE target_id = #{targetId}
+    </select>
+
+    <!-- 팔로잉 수 -->
+    <select id="countFollowings" resultType="int">
+        SELECT COUNT(*)
+        FROM follow
+        WHERE member_id = #{memberId}
+    </select>
+
+</mapper>
