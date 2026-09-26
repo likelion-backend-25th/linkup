@@ -58,4 +58,36 @@ public class PostMapperTest {
         assertThat(deletedCount).isEqualTo(1);
         assertThat(postMapper.findById(postId)).isNull();
     }
+
+    @Test
+    @DisplayName("게시글 수정 테스트")
+    public void updatePostByIdTest() {
+        // given
+        Post post = Post.builder()
+                .memberId(1L)
+                .content("수정 테스트")
+                .fileUrl(null)
+                .subscriberOnly(false)
+                .build();
+        postMapper.insert(post);
+        Long postId = post.getId();
+
+        Post updatePost = Post.builder()
+                .id(postId)
+                .memberId(1L)
+                .content("수정된 내용")
+                .fileUrl("test.txt")
+                .subscriberOnly(true)
+                .build();
+        // when
+        int updateCount = postMapper.updateById(updatePost);
+
+        // then
+        Post postDetail = postMapper.findById(postId);
+        assertThat(updateCount).isEqualTo(1);
+        assertThat(postDetail.getId()).isEqualTo(updatePost.getId());
+        assertThat(postDetail.getContent()).isEqualTo(updatePost.getContent());
+        assertThat(postDetail.isSubscriberOnly()).isEqualTo(updatePost.isSubscriberOnly());
+        assertThat(postDetail.getFileUrl()).isEqualTo(updatePost.getFileUrl());
+    }
 }

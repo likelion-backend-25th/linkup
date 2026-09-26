@@ -2,10 +2,7 @@ package net.likelion.bebc25.linkup.post.service;
 
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.post.domain.Post;
-import net.likelion.bebc25.linkup.post.dto.PostCreateRequest;
-import net.likelion.bebc25.linkup.post.dto.PostCreateResponse;
-import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
-import net.likelion.bebc25.linkup.post.dto.PostImageResponse;
+import net.likelion.bebc25.linkup.post.dto.*;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +19,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -131,6 +129,56 @@ class PostServiceTest {
         assertThat(postMapper.findById(postId)).isNotNull();
     }
 
+    @Test
+    @DisplayName("게시글 본문만 수정 테스트")
+    void updateContentTest() {
+        // given
+        Post post = Post.builder()
+                .memberId(1L)
+                .content("수정 테스트")
+                .fileUrl("test.txt")
+                .subscriberOnly(true)
+                .build();
+        postMapper.insert(post);
+        Long postId = post.getId();
+
+        // when
+        PostUpdateRequest request = new PostUpdateRequest("수정된 내용", true, false);
+        postService.updatePost(postId, 1L, request, null);
+
+        // then
+        Post updatedPost = postMapper.findById(postId);
+        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
+        assertThat(updatedPost.getFileUrl()).isEqualTo("test.txt");
+        assertThat(updatedPost.isSubscriberOnly()).isTrue();
+    }
+
+    @Test
+    @DisplayName("게시글 파일도 수정 테스트")
+    void updateFileTest() throws IOException {
+        // given
+        PostCreateRequest createRequest = new PostCreateRequest("수정 테스트", true);
+        PostCreateResponse createResponse = postService.createPost(1L, createRequest, List.of(createImage("image1.png")), createFile("test.pdf"));
+        Long postId = createResponse.id();
+        String oldFileUrl = postMapper.findById(postId).getFileUrl();
+
+        // when
+        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 내용", true, false);
+        postService.updatePost(postId, 1L, updateRequest, createFile("updated.pdf"));
+
+        // then
+        Post updatedPost = postMapper.findById(postId);
+        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
+        assertThat(updatedPost.getFileUrl())
+                .isNotEqualTo(oldFileUrl)
+                        .startsWith("/uploads/posts/files/")
+                                .endsWith(".pdf");
+        assertThat(updatedPost.isSubscriberOnly()).isTrue();
+
+        fileStorageService.delete(updatedPost.getFileUrl());
+        fileStorageService.delete(oldFileUrl);
+    }
+
     private MockMultipartFile createImage(String fileName) throws IOException {
         BufferedImage image = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 
@@ -138,5 +186,14 @@ class PostServiceTest {
         ImageIO.write(image, "png", output);
 
         return new MockMultipartFile("images", fileName, "image/png", output.toByteArray());
+    }
+
+    private MockMultipartFile createFile(String fileName) {
+        return new MockMultipartFile(
+                "file",
+                fileName,
+                "application/pdf",
+                "test file content".getBytes(StandardCharsets.UTF_8)
+        );
     }
 }

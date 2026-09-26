@@ -14,4 +14,7 @@ public interface PostMapper {
 
     // 게시글 삭제
     int deleteById(@Param("postId") Long postId);
+
+    // 게시글 수정
+    int updateById(Post post);
 }
