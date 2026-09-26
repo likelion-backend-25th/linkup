@@ -13,4 +13,12 @@ public interface AdminReportMapper {
     List<AdminReportResponse> findReports(AdminReportSearchRequest request);
 
     AdminReportDetailResponse findReportDetail(@Param("reportId") Long reportId);
+
+    int updateReportStatus(@Param("reportId") Long reportId, @Param("status") String status);
+
+    int hidePost(@Param("postId") Long postId);
+
+    int hideReply(@Param("replyId") Long replyId);
+
+    int increaseWarningCount(@Param("memberId") Long memberId);
 }
