@@ -3,6 +3,8 @@ package net.likelion.bebc25.linkup.report.service;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.post.dto.PostDetailResponse;
 import net.likelion.bebc25.linkup.post.service.PostService;
+import net.likelion.bebc25.linkup.reply.domain.Reply;
+import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
 import net.likelion.bebc25.linkup.report.dto.ReportCreateRequest;
 import net.likelion.bebc25.linkup.report.mapper.ReportMapper;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ public class ReportServiceImpl implements ReportService {
 
     private final ReportMapper reportMapper;
     private final PostService postService;
+    private final ReplyMapper replyMapper;
 
     @Transactional
     @Override
@@ -29,4 +32,22 @@ public class ReportServiceImpl implements ReportService {
         // 신고 등록
         reportMapper.saveReport(memberId, postId, request);
     }
+
+    @Transactional
+    @Override
+    public void createdReplyReport(Long memberId, Long postId, Long replyId, ReportCreateRequest request) {
+
+        Reply reply = replyMapper.getById(replyId);
+
+        if(reply == null || !reply.getPostId().equals(postId)){
+            throw new IllegalArgumentException("존재하지 않는 댓글입니다.");
+        }
+
+        if(memberId.equals(reply.getMemberId())){
+            throw new IllegalArgumentException("본인의 댓글은 신고할 수 없습니다.");
+        }
+
+        reportMapper.saveReplyReport(memberId, replyId, postId, reply.getMemberId(), request);
+    }
+
 }

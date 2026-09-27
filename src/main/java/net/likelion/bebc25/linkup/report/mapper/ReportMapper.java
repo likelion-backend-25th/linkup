@@ -13,10 +13,12 @@ public interface ReportMapper {
             @Param("request")ReportCreateRequest request
             );
 
-//    void saveReplyReport(
-//            @Param("memberId") Long memberId,
-//            @Param("postId") Long postId,
-//            @Param("request")ReportCreateRequest request
-//    );
+    void saveReplyReport(
+            @Param("memberId") Long memberId,
+            @Param("replyId") Long replyId,
+            @Param("postId") Long postId,
+            @Param("targetMemberId") Long targetMemberId,
+            @Param("request")ReportCreateRequest request
+    );
 
 }

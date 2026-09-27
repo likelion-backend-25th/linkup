@@ -29,4 +29,34 @@
             NOW()
         )
     </insert>
+
+
+    <!-- 댓글 신고 등록 -->
+    <insert id="saveReplyReport">
+        INSERT INTO report(
+        member_id,
+        target_id,
+        post_id,
+        reply_id,
+        target_type,
+        reason,
+        content,
+        status,
+        created_at,
+        updated_at
+        )
+
+        VALUES (
+        #{memberId},
+        #{targetMemberId},
+        #{postId},
+        #{replyId},
+        'REPLY',
+        #{request.reason},
+        #{request.content},
+        'WAIT',
+        NOW(),
+        NOW()
+        )
+    </insert>
 </mapper>

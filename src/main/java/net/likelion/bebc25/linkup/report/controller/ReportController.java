@@ -32,5 +32,18 @@ public class ReportController {
 
             return ResponseEntity.ok().build();
     }
+
+    // 댓글 신고
+    @PostMapping("/{postId}/replies/{replyId}/reports")
+    public ResponseEntity<Void> createReplyReport(
+            @PathVariable Long postId,
+            @PathVariable Long replyId,
+            @Valid @RequestBody ReportCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long memberId = userDetails.getId();
+        reportService.createdReplyReport(memberId, postId, replyId, request);
+        return ResponseEntity.ok().build();
+    }
 }
 
