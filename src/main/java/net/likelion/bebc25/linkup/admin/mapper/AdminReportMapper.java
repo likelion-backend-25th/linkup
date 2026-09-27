@@ -24,6 +24,10 @@ public interface AdminReportMapper {
 
     int increaseWarningCount(@Param("memberId") Long memberId);
 
+    int countPendingReports();
+
+    int countTotalMembers();
+
     int findWarningCount(@Param("memberId") Long memberId);
 
     LocalDateTime findWritingRestrictedUntil(@Param("memberId") Long memberId);
