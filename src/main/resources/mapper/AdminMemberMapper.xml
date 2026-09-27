@@ -62,7 +62,7 @@
         OFFSET #{offset}
     </select>
 
-    <select id="countMembers" resultType="int">
+    <select id="countMembers" resultType="long">
         Select COUNT(*)
         FROM member m
         WHERE 1 = 1

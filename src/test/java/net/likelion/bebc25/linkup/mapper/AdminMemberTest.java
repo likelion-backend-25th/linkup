@@ -45,7 +45,7 @@ class AdminMemberTest {
         assertThat(members).isNotNull();
 
         for(AdminMemberResponse member : members){
-            assertThat(member.nickname().contains("test"));
+            assertThat(member.nickname().contains("test")).isTrue();
         }
     }
 
@@ -72,8 +72,70 @@ class AdminMemberTest {
 
         AdminMemberDetailResponse member = adminMemberMapper.findMemberDetail(memberId);
 
-        if(member != null){
-            assertThat(member.id()).isEqualTo(memberId);
+        assertThat(member).isNotNull();
+        assertThat(member.id()).isEqualTo(memberId);
+        assertThat(member.nickname()).isNotNull();
+        assertThat(member.userId()).isNotNull();
+        assertThat(member.email()).isNotNull();
+        assertThat(member.memberStatus()).isNotNull();
+        assertThat(member.creatorStatus()).isNotNull();
+        assertThat(member.createdAt()).isNotNull();
+    }
+
+
+    @Test
+    @DisplayName("관리자 회원 수 조회")
+    void countMembersTest() {
+        // given
+        AdminMemberSearchRequest condition = new AdminMemberSearchRequest(
+                null, null, null, null, 1, 10
+        );
+
+        // when
+        long count = adminMemberMapper.countMembers(condition);
+
+        // then
+        assertThat(count).isGreaterThanOrEqualTo(0);
+    }
+
+
+    @Test
+    @DisplayName("관리자 회원 상태 필터")
+    void findMembersByMemberStatusTest() {
+        // given
+        AdminMemberSearchRequest condition = new AdminMemberSearchRequest(
+                null, null, "ACTIVE", null, 1, 10
+        );
+
+        // when
+        List<AdminMemberResponse> members =
+                adminMemberMapper.findMembers(condition);
+
+        // then
+        assertThat(members).isNotNull();
+
+        for (AdminMemberResponse member : members) {
+            assertThat(member.memberStatus()).isEqualTo("ACTIVE");
+        }
+    }
+
+    @Test
+    @DisplayName("관리자 회원 상태 필터")
+    void findMembersByCreatorStatusTest() {
+        // given
+        AdminMemberSearchRequest condition = new AdminMemberSearchRequest(
+                null, null, "Creator", null, 1, 10
+        );
+
+        // when
+        List<AdminMemberResponse> members =
+                adminMemberMapper.findMembers(condition);
+
+        // then
+        assertThat(members).isNotNull();
+
+        for (AdminMemberResponse member : members) {
+            assertThat(member.memberStatus()).isEqualTo("Creator");
         }
     }
 }
