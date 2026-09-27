@@ -5,7 +5,9 @@ import net.likelion.bebc25.linkup.admin.dto.AdminReportResponse;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportSearchRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -14,11 +16,23 @@ public interface AdminReportMapper {
 
     AdminReportDetailResponse findReportDetail(@Param("reportId") Long reportId);
 
-    int updateReportStatus(@Param("reportId") Long reportId, @Param("status") String status);
+    void updateReportStatus(@Param("reportId") Long reportId, @Param("status") String status);
 
-    int hidePost(@Param("postId") Long postId);
+    void hidePost(@Param("postId") Long postId);
 
-    int hideReply(@Param("replyId") Long replyId);
+    void hideReply(@Param("replyId") Long replyId);
 
     int increaseWarningCount(@Param("memberId") Long memberId);
+
+    int findWarningCount(@Param("memberId") Long memberId);
+
+    LocalDateTime findWritingRestrictedUntil(@Param("memberId") Long memberId);
+
+    String findMemberStatus(@Param("memberId") Long memberId);
+
+    boolean findPostHidden(@Param("postId") Long postId);
+
+    void restrictWriting(@Param("memberId") Long memberId);
+
+    void suspendMember(@Param("memberId") Long memberId);
 }

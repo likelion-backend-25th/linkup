@@ -34,7 +34,11 @@
         ON reply.id = r.reply_id
 
         LEFT JOIN member target_member
-        ON target_member.id = r.target_id
+        ON target_member.id =
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END
 
         WHERE 1 = 1
 
@@ -60,7 +64,12 @@
             r.target_type AS targetType,
             r.post_id AS postId,
             r.reply_id AS replyId,
-            r.target_Id AS targetMemberId,
+
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END AS targetMemberId,
+
             reporter.name AS reporterName,
             target_member.name AS targetUserName,
 
@@ -86,7 +95,11 @@
             ON reply.id = r.reply_id
 
         LEFT JOIN member target_member
-            ON target_member.id = p.member_id
+            ON target_member.id =
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END
 
         WHERE r.id = #{reportId}
 
@@ -116,10 +129,10 @@
 
     <!-- 댓글 숨김 -->
     <update id="hideReply">
-        UPDATE post
+        UPDATE reply
         SET
             hidden = TRUE,
-            update_at = NOW()
+            updated_at = NOW()
 
         WHERE id = #{replyId}
             AND hidden = FALSE
@@ -134,5 +147,54 @@
 
         WHERE id = #{memberId}
     </update>
+
+    <!-- 회원 경고 회수 조회 -->
+    <select id="findWarningCount" resultType="int">
+        SELECT warning_count
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 게시글 작성 제한 -->
+    <update id="restrictWriting">
+        UPDATE member
+        SET
+            writing_restricted_until = DATE_ADD(NOW(), INTERVAL 7 DAY),
+            updated_at = NOW()
+
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 작성 제한 시간 조회 -->
+    <select id="findWritingRestrictedUntil" resultType="java.time.LocalDateTime">
+        SELECT writing_restricted_until
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 회원 정지 -->
+    <update id="suspendMember">
+        UPDATE member
+        SET
+            status = 'SUSPENDED',
+            updated_at = NOW()
+
+        WHERE id = #{memberId}
+    </update>
+
+    <select id="findMemberStatus" resultType="string">
+        SELECT status
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 게시글 숨김 여부 -->
+    <select id="findPostHidden" resultType="boolean">
+        SELECT hidden
+        FROM post
+        WHERE id = #{postId}
+    </select>
+
+
 
 </mapper>

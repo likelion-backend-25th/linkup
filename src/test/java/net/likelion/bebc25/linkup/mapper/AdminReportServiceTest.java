@@ -1,12 +1,16 @@
 package net.likelion.bebc25.linkup.mapper;
 
+import net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportProcessRequest;
+import net.likelion.bebc25.linkup.admin.mapper.AdminReportMapper;
 import net.likelion.bebc25.linkup.admin.service.AdminReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,13 +21,14 @@ public class AdminReportServiceTest {
 
     @Autowired
     private AdminReportService adminReportService;
+    @Autowired
+    private AdminReportMapper adminReportMapper;
 
     @Test
     @DisplayName("신고 기각 테스트")
     void rejectReportTest(){
         //given
         Long reportId = 1L;
-
         AdminReportProcessRequest request = new AdminReportProcessRequest("REJECTED");
 
         // when
@@ -38,7 +43,6 @@ public class AdminReportServiceTest {
     void resolveReportTest(){
         // given
         Long reportId = 2L;
-
         AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
 
         // when
@@ -53,7 +57,6 @@ public class AdminReportServiceTest {
     void processNoneReportTest(){
         // given
         Long reportId = 99999L;
-
         AdminReportProcessRequest request = new AdminReportProcessRequest("REJECTED");
 
         // when & then
@@ -69,7 +72,6 @@ public class AdminReportServiceTest {
     void processAlreadyTest(){
         //given
         Long reportId = 20L;
-
         AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
 
         // when & then
@@ -86,7 +88,6 @@ public class AdminReportServiceTest {
     void processInvalidTest(){
         // given
         Long reportId = 1L;
-
         AdminReportProcessRequest request = new AdminReportProcessRequest("INVALID");
 
         // when & then
@@ -96,4 +97,88 @@ public class AdminReportServiceTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("올바르지 않은 신고 처리 상태입니다.");
     }
+
+    @Test
+    @DisplayName("신고 처리 시 대상 회원의 경고 횟수 증가")
+    void increaseWarningCountTest(){
+        // given
+        Long reportId = 1L;
+        AdminReportDetailResponse report = adminReportService.getReportDetail(reportId);
+        int beforeWarningCount = adminReportMapper.findWarningCount(report.targetMemberId());
+        AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
+
+        // when
+        adminReportService.processReport(reportId, request);
+
+        // then
+        int afterWarningCount = adminReportMapper.findWarningCount(report.targetMemberId());
+        assertThat(afterWarningCount).isEqualTo(beforeWarningCount + 1);
+    }
+
+    @Test
+    @DisplayName("경고 2회 누적 시 게시글 작성 7일 제한 테스트")
+            void secondWarningTest(){
+        // given
+        Long firstReportId = 1L;
+        Long secondReportId = 2L;
+        AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
+
+        //when
+        adminReportService.processReport(firstReportId, request);
+        adminReportService.processReport(secondReportId, request);
+
+        // then
+        AdminReportDetailResponse secondReport = adminReportService.getReportDetail(secondReportId);
+        int warningCount = adminReportMapper.findWarningCount(secondReport.targetMemberId());
+        LocalDateTime restrictedUntil = adminReportMapper.findWritingRestrictedUntil(secondReport.targetMemberId());
+
+        assertThat(warningCount).isEqualTo(2);
+        assertThat(restrictedUntil).isNotNull();
+        assertThat(restrictedUntil).isAfter(LocalDateTime.now());
+    }
+
+    @Test
+    @DisplayName("경고 3회 누적 시 회원 정지 테스트")
+    void thirdWarningTest(){
+        // given
+        Long firstReportId = 1L;
+        Long secondReportId = 2L;
+        Long thirdReportId = 4L;
+
+        AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
+
+        // when
+        adminReportService.processReport(firstReportId, request);
+        adminReportService.processReport(secondReportId, request);
+        adminReportService.processReport(thirdReportId, request);
+
+        //then
+        AdminReportDetailResponse thirdReport = adminReportService.getReportDetail(thirdReportId);
+        int warningCount = adminReportMapper.findWarningCount(thirdReport.targetMemberId());
+        String memberStatus = adminReportMapper.findMemberStatus(thirdReport.targetMemberId());
+
+        assertThat(warningCount).isEqualTo(3);
+        assertThat(memberStatus).isEqualTo("SUSPENDED");
+    }
+
+    @Test
+    @DisplayName("신고 처리 완료 시 게시글 숨김 처리 테스트")
+    void hidePostAfterResolveTest(){
+        // given
+        Long reportId = 1L;
+        AdminReportDetailResponse report = adminReportService.getReportDetail(reportId);
+
+        Long postId = report.postId();
+        AdminReportProcessRequest request = new AdminReportProcessRequest("RESOLVED");
+
+        // when
+        adminReportService.processReport(reportId, request);
+
+        // then
+        boolean hidden = adminReportMapper.findPostHidden(postId);
+
+        assertThat(hidden).isTrue();
+    }
+
+
 }
