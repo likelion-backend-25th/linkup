@@ -26,4 +26,10 @@ public interface ReplyMapper {
 
     // 댓글 수정
     int updateReplyById(@Param("id") Long id, @Param("content") String content);
+
+    // 댓글 좋아요 증가
+    int incrementLikeCount(@Param("replyId") Long replyId);
+
+    // 댓글 좋아요 감소
+    int decrementLikeCount(@Param("replyId") Long replyId);
 }
