@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.mapper;
 
+import net.likelion.bebc25.linkup.admin.dto.AdminOperationResponse;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse;
 import net.likelion.bebc25.linkup.admin.dto.AdminReportProcessRequest;
 import net.likelion.bebc25.linkup.admin.mapper.AdminReportMapper;
@@ -181,4 +182,19 @@ public class AdminReportServiceTest {
     }
 
 
+    @Test
+    @DisplayName("관리자 운영 현황 조회")
+    void getOperationTest() {
+        // given
+        int exceptedPendingReportCount = adminReportMapper.countPendingReports();
+        int exceptedTotalMemberCount = adminReportMapper.countTotalMembers();
+
+        // when
+        AdminOperationResponse response = adminReportService.getOperation();
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.pendingReportCount()).isEqualTo(exceptedPendingReportCount);
+        assertThat(response.totalMember()).isEqualTo(exceptedTotalMemberCount);
+    }
 }

@@ -2,10 +2,7 @@ package net.likelion.bebc25.linkup.admin.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportProcessRequest;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportResponse;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportSearchRequest;
+import net.likelion.bebc25.linkup.admin.dto.*;
 import net.likelion.bebc25.linkup.admin.service.AdminReportService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +24,11 @@ public class AdminReporterController {
     @GetMapping("/{reportId}")
     public AdminReportDetailResponse getReportDetail(@PathVariable("reportId") Long reportId){
         return adminReportService.getReportDetail(reportId);
+    }
+
+    @GetMapping("/operation")
+    public AdminOperationResponse getOperation(){
+        return adminReportService.getOperation();
     }
 
     @PatchMapping("/{reportId}")

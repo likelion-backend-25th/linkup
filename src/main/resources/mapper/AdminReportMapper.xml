@@ -196,5 +196,16 @@
     </select>
 
 
+    <!-- 대기 중인 신고 수 -->
+    <select id="countPendingReports" resultType="int">
+        SELECT COUNT(*)
+        FROM report
+        WHERE status = 'WAIT'
+    </select>
 
+    <!-- 전체 회원 수 -->
+    <select id="countTotalMembers" resultType="int">
+        SELECT COUNT(*)
+        FROM report
+    </select>
 </mapper>

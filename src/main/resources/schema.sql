@@ -318,19 +318,3 @@ UPDATE member
 SET role = 'ROLE_ADMIN',
     updated_at = NOW()
 WHERE id = 51;
-
-SELECT id, member_id, post_id, content
-FROM reply
-WHERE id = 1;
-
-SELECT DISTINCT status
-FROM payment;
-#
-# SELECT id, email, name, unique_id, role
-# FROM member
-# WHERE id = 51;
-#
-# SELECT *
-# FROM report
-# ORDER BY id DESC
-# LIMIT 1;

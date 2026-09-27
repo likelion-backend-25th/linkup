@@ -1,10 +1,7 @@
 package net.likelion.bebc25.linkup.admin.service;
 
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportProcessRequest;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportResponse;
-import net.likelion.bebc25.linkup.admin.dto.AdminReportSearchRequest;
+import net.likelion.bebc25.linkup.admin.dto.*;
 import net.likelion.bebc25.linkup.admin.mapper.AdminReportMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,5 +77,13 @@ public class AdminReportServiceImpl implements AdminReportService {
         } else if(warningCount >= 3) {
             adminReportMapper.suspendMember(report.targetMemberId());
         }
+    }
+
+    @Override
+    public AdminOperationResponse getOperation() {
+        int pendingReportCount = adminReportMapper.countPendingReports();
+        int totalMemberCount = adminReportMapper.countTotalMembers();
+
+        return new AdminOperationResponse(pendingReportCount, totalMemberCount);
     }
 }
