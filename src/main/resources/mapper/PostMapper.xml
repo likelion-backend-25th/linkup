@@ -31,4 +31,28 @@
             subscriber_only = #{subscriberOnly}
         WHERE id = #{id}
     </update>
+
+    <!-- 게시글 좋아요 카운트 증가 -->
+    <update id="incrementLikeCount">
+        UPDATE post
+        SET like_count = like_count + 1
+        WHERE id = #{postId}
+    </update>
+
+    <!-- 게시글 좋아요 카운트 감소 -->
+    <update id="decrementLikeCount">
+        UPDATE post
+        SET like_count = like_count - 1
+        WHERE id = #{postId}
+    </update>
+
+    <!-- 임시 구독 상태 조회 -->
+    <select id="existsValidSubscription" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1
+        FROM subscription
+        WHERE member_id = #{memberId} AND creator_id = #{creatorId}
+        AND status = 'ACTIVE' AND end_date > CURRENT_TIMESTAMP
+        )
+    </select>
 </mapper>

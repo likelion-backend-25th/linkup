@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.post.mapper.PostLikeMapper">
+    <!-- 게시글 좋아요 등록 -->
+    <insert id="insert">
+        INSERT INTO post_like ( post_id, member_id )
+        VALUES ( #{postId}, #{memberId} )
+    </insert>
+
+    <!-- 좋아요 삭제 -->
+    <delete id="delete">
+        DELETE FROM post_like
+        WHERE post_id = #{postId} AND member_id = #{memberId}
+    </delete>
+
+    <!-- 좋아요 존재 유무 확인 -->
+    <select id="existsByPostIdAndMemberId" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1
+        FROM post_like
+        WHERE post_id = #{postId} AND member_id = #{memberId}
+        )
+    </select>
+</mapper>
+

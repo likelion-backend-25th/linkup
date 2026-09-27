@@ -17,4 +17,13 @@ public interface PostMapper {
 
     // 게시글 수정
     int updateById(Post post);
+
+    // 게시글 좋아요 카운트 증가
+    int incrementLikeCount(@Param("postId") Long postId);
+
+    // 게시글 좋아요 카운트 감소
+    int decrementLikeCount(@Param("postId") Long postId);
+
+    // 임시 구독 상태 조회.
+    boolean existsValidSubscription(@Param("memberId") Long memberId, @Param("creatorId") Long creatorId);
 }
