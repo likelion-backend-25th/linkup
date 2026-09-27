@@ -20,4 +20,10 @@ public interface ReplyMapper {
 
     // 댓글 생성
     int insert(Reply reply);
+
+    // 댓글 삭제
+    int deleteById(@Param("id") Long id);
+
+    // 댓글 수정
+    int updateReplyById(@Param("id") Long id, @Param("content") String content);
 }

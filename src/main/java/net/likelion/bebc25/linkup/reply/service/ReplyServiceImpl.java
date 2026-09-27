@@ -9,6 +9,7 @@ import net.likelion.bebc25.linkup.reply.domain.Reply;
 import net.likelion.bebc25.linkup.reply.dto.ReplyCreateRequest;
 import net.likelion.bebc25.linkup.reply.dto.ReplyPageResponse;
 import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
+import net.likelion.bebc25.linkup.reply.dto.ReplyUpdateRequest;
 import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,19 @@ public class ReplyServiceImpl implements ReplyService {
         return reply.getId();
     }
 
+    @Transactional
+    @Override
+    public void deleteReply(Long postId, Long memberId, Long replyId) {
+        validateReplyDeletePermission(postId, memberId, replyId);
+        replyMapper.deleteById(replyId);
+    }
+
+    @Transactional
+    @Override
+    public void updateReply(Long postId, Long memberId, Long replyId, ReplyUpdateRequest request) {
+        validateReplyUpdatePermission(postId, memberId, replyId);
+        replyMapper.updateReplyById(replyId, request.content());
+    }
 
     private ReplyPageResponse toReplyResponse(List<ReplyResponse> result, int size) {
         boolean hasNext = result.size() > size;
@@ -82,5 +96,39 @@ public class ReplyServiceImpl implements ReplyService {
         }
 
 
+    }
+
+    // 댓글 수정 권한 검사
+    private void validateReplyUpdatePermission(Long postId, Long memberId, Long replyId) {
+        Reply reply = replyMapper.getById(replyId);
+        if (reply == null || !reply.getPostId().equals(postId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."
+            );
+        }
+
+        if (!reply.getMemberId().equals(memberId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "댓글 작성자가 아닙니다."
+            );
+        }
+    }
+
+    // 댓글 삭제 권한 검사
+    private void validateReplyDeletePermission(Long postId, Long memberId, Long replyId) {
+        Reply reply = replyMapper.getById(replyId);
+        if (reply == null || !reply.getPostId().equals(postId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."
+            );
+        }
+        Post post = postMapper.findById(postId);
+        if (post.getMemberId().equals(memberId) || reply.getMemberId().equals(memberId)) {
+           return;
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "댓글을 삭제할 권한이 없습니다."
+            );
+        }
     }
 }
