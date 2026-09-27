@@ -312,22 +312,6 @@ CREATE TABLE payment (
             ON DELETE CASCADE
 );
 
-SELECT
-    r.id AS report_id,
-    r.status,
-    r.target_type,
-    CASE
-        WHEN r.target_type = 'POST' THEN p.member_id
-        WHEN r.target_type = 'REPLY' THEN reply.member_id
-        END AS target_member_id
-FROM report r
-         LEFT JOIN post p
-                   ON p.id = r.post_id
-         LEFT JOIN reply
-                   ON reply.id = r.reply_id
-WHERE r.status = 'WAIT'
-ORDER BY target_member_id, r.id;
-
 
 # # JSESSIONID 필수 테스트용 코드
 UPDATE member
@@ -338,6 +322,9 @@ WHERE id = 51;
 SELECT id, member_id, post_id, content
 FROM reply
 WHERE id = 1;
+
+SELECT DISTINCT status
+FROM payment;
 #
 # SELECT id, email, name, unique_id, role
 # FROM member

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -27,7 +28,8 @@ class AdminPaymentMapperTest {
 
         //given
         AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
-                null, null, null, null, 1, 10);
+                null, null, null, null, 1, 10
+        );
 
         // when
         List<AdminPaymentResponse> payments = adminPaymentMapper.findPayments(request);
@@ -42,7 +44,8 @@ class AdminPaymentMapperTest {
 
         // given
         AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
-                null, null, null, null, 1, 10);
+                null, null, null, null, 1, 10
+        );
 
         // when
         long count = adminPaymentMapper.countPayments(request);
@@ -65,5 +68,86 @@ class AdminPaymentMapperTest {
         // then
         assertThat(payments).isNotNull();
         assertThat(payments.paymentId()).isEqualTo(paymentId);
+    }
+
+
+    @Test
+    @DisplayName("관리자 결제 상태 필터")
+    void findPaymentByStatusTest(){
+        // given
+        AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
+                null, "PAID", null, null, 1, 10
+        );
+
+        // when
+        List<AdminPaymentResponse> payments = adminPaymentMapper.findPayments(request);
+
+        // then
+        assertThat(payments).isNotNull();
+        for(AdminPaymentResponse payment : payments){
+            assertThat(payment.paymentStatus()).isEqualTo("PAID");
+        }
+    }
+
+
+    @Test
+    @DisplayName("관리자 결제 구매자 닉네임 검색")
+    void findPaymentsByNicknameTest(){
+        // given
+        AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
+                "test", null, null, null, 1, 10
+        );
+
+        // whne
+        List<AdminPaymentResponse> payments = adminPaymentMapper.findPayments(request);
+
+        // then
+        assertThat(payments).isNotNull();
+        for(AdminPaymentResponse payment : payments){
+            assertThat(payment.buyerNickname())
+                    .contains("test");
+        }
+    }
+
+
+    @Test
+    @DisplayName("관리자 결제 구매자 아이디 검색")
+    void findPaymentsByIdTest(){
+        // given
+        AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
+                "test", null, null, null, 1, 10
+        );
+
+        // whne
+        List<AdminPaymentResponse> payments = adminPaymentMapper.findPayments(request);
+
+        // then
+        assertThat(payments).isNotNull();
+        for(AdminPaymentResponse payment : payments){
+            assertThat(payment.buyerNickname())
+                    .contains("test");
+        }
+    }
+
+    @Test
+    @DisplayName("관리자 결제 날짜 범위 검색")
+    void findPaymentsDateTest(){
+        // given
+        LocalDate startDate = LocalDate.of(2026,9,27);
+        LocalDate endDate = LocalDate.of(2026,10,5);
+
+        AdminPaymentSearchRequest request = new AdminPaymentSearchRequest(
+                null, null, startDate, endDate, 1, 10
+        );
+
+        // when
+        List<AdminPaymentResponse> payments = adminPaymentMapper.findPayments(request);
+
+        // then
+        assertThat(payments).isNotNull();
+        for(AdminPaymentResponse payment : payments){
+            assertThat(payment.paymentDate().toLocalDate())
+                    .isBetween(startDate, endDate);
+        }
     }
 }
