@@ -52,6 +52,7 @@ public class AdminReportServiceImpl implements AdminReportService {
             throw new IllegalArgumentException("올바르지 않은 신고 처리 상태입니다.");
         }
 
+        // 신고 상태 변경
         adminReportMapper.updateReportStatus(reportId, status);
 
         // 신고 기각
@@ -59,13 +60,25 @@ public class AdminReportServiceImpl implements AdminReportService {
             return;
         }
 
-        // 신고 처리 완료
+        // 콘텐츠 숨김 처리
         if("POST".equals(report.targetType())){
             adminReportMapper.hidePost(report.postId());
         } else if("REPLY".equals(report.targetType())){
             adminReportMapper.hideReply(report.replyId());
         }
 
+        // 대상 회원 경고 증가
         adminReportMapper.increaseWarningCount(report.targetMemberId());
+
+        // 증가된 경고 수 확인
+        int warningCount = adminReportMapper.findWarningCount(report.targetMemberId());
+
+        // 게시글 작성 제한
+        if(warningCount == 2){
+            adminReportMapper.restrictWriting(report.targetMemberId());
+            // 회원 정지
+        } else if(warningCount >= 3) {
+            adminReportMapper.suspendMember(report.targetMemberId());
+        }
     }
 }

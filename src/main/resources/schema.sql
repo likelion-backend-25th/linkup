@@ -311,3 +311,28 @@ CREATE TABLE payment (
             REFERENCES subscription(id)
             ON DELETE CASCADE
 );
+
+SELECT
+    r.id AS report_id,
+    r.status,
+    r.target_type,
+    CASE
+        WHEN r.target_type = 'POST' THEN p.member_id
+        WHEN r.target_type = 'REPLY' THEN reply.member_id
+        END AS target_member_id
+FROM report r
+         LEFT JOIN post p
+                   ON p.id = r.post_id
+         LEFT JOIN reply
+                   ON reply.id = r.reply_id
+WHERE r.status = 'WAIT'
+ORDER BY target_member_id, r.id;
+
+UPDATE member
+SET role = 'ROLE_ADMIN',
+    updated_at = NOW()
+WHERE id = 51;
+
+SELECT id, email, name, unique_id, role
+FROM member
+WHERE id = 51;
