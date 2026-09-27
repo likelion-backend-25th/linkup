@@ -5,7 +5,8 @@ import jakarta.validation.constraints.Size;
 
 public record ReportCreateRequest(
         // 신고 사유
-        @NotBlank
+        @NotBlank(message = "신고 사유는 필수입니다.")
+        @Size(max = 100, message = "신고 사유는 최대 100자까지 입력할 수 있습니다.")
         String reason,
 
         // 신고 내용
