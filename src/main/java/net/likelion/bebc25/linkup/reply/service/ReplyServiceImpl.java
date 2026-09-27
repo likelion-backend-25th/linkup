@@ -5,6 +5,8 @@ import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.dto.FeedResponse;
 import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
+import net.likelion.bebc25.linkup.reply.domain.Reply;
+import net.likelion.bebc25.linkup.reply.dto.ReplyCreateRequest;
 import net.likelion.bebc25.linkup.reply.dto.ReplyPageResponse;
 import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
 import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
@@ -33,6 +35,22 @@ public class ReplyServiceImpl implements ReplyService {
         return toReplyResponse(result, size);
     }
 
+    @Transactional
+    @Override
+    public Long createReply(Long postId, Long memberId, ReplyCreateRequest request) {
+        validatePostReadAccess(postId, memberId);
+        Reply reply = Reply.builder()
+                .postId(postId)
+                .memberId(memberId)
+                .content(request.content())
+                .build();
+
+        replyMapper.insert(reply);
+
+        return reply.getId();
+    }
+
+
     private ReplyPageResponse toReplyResponse(List<ReplyResponse> result, int size) {
         boolean hasNext = result.size() > size;
 
@@ -47,6 +65,7 @@ public class ReplyServiceImpl implements ReplyService {
         return new ReplyPageResponse(replies, nextCursor, hasNext);
     }
 
+    // 게시글 접근 권한 검사
     private void validatePostReadAccess(Long postId, Long memberId) {
         Post post = postMapper.findById(postId);
 

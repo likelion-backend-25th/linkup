@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.reply.mapper;
 
+import net.likelion.bebc25.linkup.reply.domain.Reply;
 import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,10 +34,34 @@ public class ReplyMapperTest {
         assertThat(replyResponses.getLast().memberId()).isEqualTo(2L);
     }
 
+    @Test
+    @DisplayName("댓글 생성 테스트")
+    public void createReplyTest() {
+        // given
+        Reply reply = Reply.builder()
+                .postId(1L)
+                .memberId(2L)
+                .content("테스트 댓글")
+                .build();
+
+        // when
+        int result = replyMapper.insert(reply);
+        Reply resultReply = replyMapper.getById(reply.getId());
+
+        // then
+        assertThat(result).isEqualTo(1);
+        assertThat(reply.getId()).isNotNull();
+        assertThat(resultReply.getPostId()).isEqualTo(reply.getPostId());
+        assertThat(resultReply.getMemberId()).isEqualTo(reply.getMemberId());
+        assertThat(resultReply.getContent()).isEqualTo(reply.getContent());
+    }
+
     private void createReply(Long postId, Long memberId, String content) {
         jdbcTemplate.update(
                 "INSERT INTO reply (post_id, member_id, content) VALUES (?, ?, ?)",
                 postId, memberId, content
         );
     }
+
+
 }

@@ -4,6 +4,7 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="net.likelion.bebc25.linkup.reply.mapper.ReplyMapper">
+    <!-- 게시글 ID로 댓글 조회 -->
     <select id="getByPostId" resultType="ReplyResponse">
         SELECT
         r.id AS id,
@@ -27,4 +28,16 @@
         ORDER BY r.id ASC
         LIMIT #{limit}
     </select>
+
+    <!-- 댓글 ID로 댓글 조회 -->
+    <select id="getById" resultType="Reply">
+        SELECT * FROM reply WHERE id = #{id}
+    </select>
+
+    <!-- 댓글 생성 -->
+    <insert id="insert" parameterType="Reply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reply(post_id, member_id, content)
+        VALUES ( #{postId}, #{memberId}, #{content} )
+    </insert>
+
 </mapper>

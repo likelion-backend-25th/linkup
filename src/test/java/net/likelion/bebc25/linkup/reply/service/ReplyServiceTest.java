@@ -2,8 +2,11 @@ package net.likelion.bebc25.linkup.reply.service;
 
 import net.likelion.bebc25.linkup.post.dto.FeedResponse;
 import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
+import net.likelion.bebc25.linkup.reply.domain.Reply;
+import net.likelion.bebc25.linkup.reply.dto.ReplyCreateRequest;
 import net.likelion.bebc25.linkup.reply.dto.ReplyPageResponse;
 import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
+import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ReplyServiceTest {
     @Autowired
     ReplyService replyService;
+
+    @Autowired
+    ReplyMapper replyMapper;
 
     @Test
     @DisplayName("댓글 마지막 페이지 조회 테스트")
@@ -32,5 +38,23 @@ public class ReplyServiceTest {
 
         assertThat(response.hasNext()).isFalse();
         assertThat(response.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("댓글 생성 테스트")
+    void createReply() {
+        // given
+        ReplyCreateRequest createRequest = new ReplyCreateRequest("테스트 댓글");
+
+        // when
+        Long replyId = replyService.createReply(1L, 2L, createRequest);
+
+        // then
+        Reply result = replyMapper.getById(replyId);
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(replyId);
+        assertThat(result.getPostId()).isEqualTo(1L);
+        assertThat(result.getMemberId()).isEqualTo(2L);
+        assertThat(result.getContent()).isEqualTo("테스트 댓글");
     }
 }
