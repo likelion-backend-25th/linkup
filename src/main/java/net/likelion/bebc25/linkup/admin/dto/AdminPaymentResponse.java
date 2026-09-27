@@ -16,6 +16,9 @@ public record AdminPaymentResponse(
         // 구매자명
         String buyerNickname,
 
+        // 구매자 ID
+        String buyerId,
+
         // 결제 금액
         int amount,
 

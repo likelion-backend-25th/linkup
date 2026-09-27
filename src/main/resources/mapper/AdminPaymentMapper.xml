@@ -11,6 +11,7 @@
         p.paid_at AS payment_date,
         seller.name AS seller_nickname,
         buyer.name AS buyer_nickname,
+        buyer.unique_id AS buyer_id,
         p.amount AS amount,
         p.status AS payment_status
     </sql>

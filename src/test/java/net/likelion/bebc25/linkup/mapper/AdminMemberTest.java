@@ -100,7 +100,7 @@ class AdminMemberTest {
 
 
     @Test
-    @DisplayName("관리자 회원 상태 필터")
+    @DisplayName("관리자 회원 상태 필터1")
     void findMembersByMemberStatusTest() {
         // given
         AdminMemberSearchRequest condition = new AdminMemberSearchRequest(
@@ -120,7 +120,7 @@ class AdminMemberTest {
     }
 
     @Test
-    @DisplayName("관리자 회원 상태 필터")
+    @DisplayName("관리자 회원 상태 필터2")
     void findMembersByCreatorStatusTest() {
         // given
         AdminMemberSearchRequest condition = new AdminMemberSearchRequest(
