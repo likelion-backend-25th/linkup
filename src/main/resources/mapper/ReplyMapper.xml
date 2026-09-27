@@ -40,4 +40,16 @@
         VALUES ( #{postId}, #{memberId}, #{content} )
     </insert>
 
+    <!-- 댓글 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM reply WHERE id = #{id}
+    </delete>
+
+    <!-- 댓글 수정 -->
+    <update id="updateReplyById">
+        UPDATE reply
+        SET content = #{content}
+        WHERE id = #{id}
+    </update>
+
 </mapper>

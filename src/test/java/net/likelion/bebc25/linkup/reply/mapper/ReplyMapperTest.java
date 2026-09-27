@@ -56,6 +56,46 @@ public class ReplyMapperTest {
         assertThat(resultReply.getContent()).isEqualTo(reply.getContent());
     }
 
+    @Test
+    @DisplayName("댓글 삭제 테스트")
+    public void deleteReplyTest() {
+        // given
+        Reply reply = Reply.builder()
+                .postId(1L)
+                .memberId(2L)
+                .content("테스트 댓글")
+                .build();
+        replyMapper.insert(reply);
+
+        // when
+        int deleteResult = replyMapper.deleteById(reply.getId());
+
+        // then
+        assertThat(deleteResult).isEqualTo(1);
+        assertThat(replyMapper.getById(reply.getId())).isNull();
+    }
+
+    @Test
+    @DisplayName("댓글 수정 테스트")
+    public void updateReplyTest() {
+        // given
+        Reply reply = Reply.builder()
+                .postId(1L)
+                .memberId(2L)
+                .content("테스트 댓글")
+                .build();
+        replyMapper.insert(reply);
+
+        // when
+        int updateResult = replyMapper.updateReplyById(reply.getId(), "수정된 내용");
+        Reply resultReply = replyMapper.getById(reply.getId());
+        // then
+        assertThat(updateResult).isEqualTo(1);
+        assertThat(resultReply.getPostId()).isEqualTo(reply.getPostId());
+        assertThat(resultReply.getMemberId()).isEqualTo(reply.getMemberId());
+        assertThat(resultReply.getContent()).isEqualTo("수정된 내용");
+    }
+
     private void createReply(Long postId, Long memberId, String content) {
         jdbcTemplate.update(
                 "INSERT INTO reply (post_id, member_id, content) VALUES (?, ?, ?)",
