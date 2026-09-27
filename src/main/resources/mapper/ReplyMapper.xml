@@ -52,4 +52,17 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 댓글 좋아요 카운트 증가 -->
+    <update id="incrementLikeCount">
+        UPDATE reply
+        SET like_count = like_count + 1
+        WHERE id = #{replyId}
+    </update>
+
+    <!-- 댓글 좋아요 카운트 감소 -->
+    <update id="decrementLikeCount">
+        UPDATE reply
+        SET like_count = like_count - 1
+        WHERE id = #{replyId}
+    </update>
 </mapper>
