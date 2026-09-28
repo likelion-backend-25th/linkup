@@ -23,9 +23,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,8 +90,8 @@ public class PostServiceImpl implements PostService {
         return PostCreateResponse.from(post);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public PostDetailResponse getPostDetailById(Long postId, Long memberId) {
         PostDetailRow postDetailRow = postMapper.findDetailById(postId);
 
@@ -160,21 +159,66 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void updatePost(Long postId, Long memberId, PostUpdateRequest request, MultipartFile file) {
+    public void updatePost(Long postId, Long memberId, PostUpdateRequest request, List<MultipartFile> images, MultipartFile file) {
+        // 게시글 조회 및 작성자 권한 확인
         Post existingPost = getOwnedPostOrThrow(postId, memberId);
 
-        String fileKey = resolveFileKey(existingPost, memberMapper.findById(memberId), request, file);
+        Member member = memberMapper.findById(memberId);
+        if (member == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "회원이 존재하지 않습니다."
+            );
+        }
 
+        if (request.subscriberOnly() && !isCreator(member)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "크리에이터만 구독자 전용 게시글을 작성할 수 있습니다."
+            );
+        }
+
+        // 새 이미지가 전달되지 않은 경우 빈 리스트로 처리
+        List<MultipartFile> newImages = images == null ? List.of() : images;
+
+        // 수정 전 기존 이미지 조회
+        List<PostImage> existingImages = postImageMapper.findAllByPostId(postId);
+
+        // 이미지 수정 요청 검증 ( imageRequests 요청 값 검증 )
+        validateImageUpdateRequest(request.imageRequest(), newImages);
+
+        // 새로 추가되는 이미지 파일 검증
+        if (!newImages.isEmpty()) {
+            validateImages(newImages);
+        }
+
+        // 트랜잭션 실패 시 새로 업로드한 파일을 삭제하기 위한 목록
+        List<String> uploadedKeys = new ArrayList<>();
+        registerUploadRollbackCleanUp(uploadedKeys);
+
+        // 첨부파일 삭제, 유지, 교체 처리
+        String newFileKey = resolveFileKey(existingPost, member, request, file, uploadedKeys);
+
+        // 변경된 게시글 정보 저장
         Post post = Post.builder()
                 .id(postId)
                 .memberId(memberId)
                 .content(request.content())
-                .fileUrl(fileKey)
+                .fileUrl(newFileKey)
                 .subscriberOnly(request.subscriberOnly())
                 .build();
         postMapper.updateById(post);
 
-        scheduleOldFileDeletion(existingPost.getFileUrl(), fileKey);
+        // 이미지 유지 / 추가 / 삭제 / 순서 변경
+        updatePostImages(
+                postId,
+                request.imageRequest(),
+                existingImages,
+                newImages,
+                uploadedKeys
+        );
+
+        // DB 커밋 후 기존 첨부파일 삭제
+        scheduleOldFileDeletion(existingPost.getFileUrl(), newFileKey);
     }
 
     // 이미지 파일 검증
@@ -290,52 +334,171 @@ public class PostServiceImpl implements PostService {
         return existingPost;
     }
 
-    // 수정할 게시글 규칙 검사 후 파일 업로드 후 파일 키 반환
-    private String resolveFileKey(Post existingPost, Member member,
-                                  PostUpdateRequest request, MultipartFile file) {
-        if (request.removeFile() && file != null) {
+    // 첨부파일 삭제,유지,교체 요청을 처리하고, DB에 저장할 파일 키 반환
+    // 새로 업로드한 파일 키는 롤백 시 정리할 목록에 추가
+    private String resolveFileKey(Post existingPost,
+                                  Member member,
+                                  PostUpdateRequest request,
+                                  MultipartFile file,
+                                  List<String> uploadedKeys) {
+        boolean hasFile = file != null && !file.isEmpty();
+
+        if (request.removeFile() && hasFile) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "잘못된 요청입니다."
+                    HttpStatus.BAD_REQUEST, "파일 삭제와 새 파일 첨부를 동시에 요청할 수 없습니다."
             );
         }
 
-        String fileKey = null;
+        // 삭제: DB에 저장할 파일 키를 null로 반환
         if (request.removeFile()) {
-            fileKey = null;
-        } else if (file == null) {
-            fileKey = existingPost.getFileUrl();
-            if (!request.subscriberOnly() && fileKey != null) {
-                throw new IllegalArgumentException("첨부 파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
-            }
-        } else {
-            validateFile(file);
-            if (!isCreator(member)) {
-                throw new IllegalArgumentException("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
-            }
-            if (!request.subscriberOnly()) {
-                throw new IllegalArgumentException("첨부 파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
-            }
-            fileKey = fileStorageService.upload(file, POST_FILE_DIRECTORY);
+            return null;
         }
 
-        return fileKey;
+        // 유지
+        if (!hasFile) {
+            String oldKey = existingPost.getFileUrl();
+            if (oldKey != null && !request.subscriberOnly()) {
+                throw new IllegalArgumentException("첨부 파일이 있는 게시글은 구독자 전용이어야 합니다.");
+            }
+            return oldKey;
+        }
+
+        // 교체
+        validateFile(file);
+        validateFileAttachmentPermission(member, request.subscriberOnly());
+        String newKey = fileStorageService.upload(file, POST_FILE_DIRECTORY);
+        uploadedKeys.add(newKey);
+        return newKey;
     }
 
-    // 저장소에 존재하는 기존 파일 삭제 필요 유무 검사 후 삭제
+    // 첨부파일이 교체되거나 제거되면, DB 커밋 후 기존 파일 삭제 예약
     private void scheduleOldFileDeletion(String oldKey, String fileKey) {
-        if (oldKey != null && !oldKey.equals(fileKey)) {
-            TransactionSynchronizationManager.registerSynchronization(
-                    new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            try {
-                                fileStorageService.delete(oldKey);
-                            } catch (RuntimeException e) {
-                                log.error("기존 첨부파일 삭제 실패: {}", oldKey, e);
-                            }
+        // 기존 파일이 없거나 유지되는 경우에는 삭제하지 않음
+        if (oldKey == null || !oldKey.equals(fileKey)) {
+            return;
+        }
+
+        // DB 롤백 시 기존 파일이 필요하므로, 커밋이 확정된 후에만 삭제
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            fileStorageService.delete(oldKey);
+                        } catch (RuntimeException e) {
+                            // DB는 이미 커밋됐으므로 정리 실패 로그 남김
+                            log.error("기존 첨부파일 삭제 실패: {}", oldKey, e);
                         }
                     }
-            );
+                }
+        );
+    }
+
+    // 이미지 제거되면, DB 커밋 후 기존 파일 삭제 예약
+    private void scheduleImageDeletionAfterCommit(String key) {
+
+        // DB 롤백 시 기존 파일이 필요하므로, 커밋이 확정된 후에만 삭제
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            fileStorageService.delete(key);
+                        } catch (RuntimeException e) {
+                            // DB는 이미 커밋됐으므로 정리 실패 로그 남김
+                            log.error("기존 첨부파일 삭제 실패: {}", key, e);
+                        }
+                    }
+                }
+        );
+    }
+
+    // imageRequests 요청 값 검증
+    private void validateImageUpdateRequest(
+            List<PostImageUpdateRequest> imageRequests,
+            List<MultipartFile> newImages
+    ) {
+        Set<Integer> usedIndexes = new HashSet<>();
+
+        for (PostImageUpdateRequest imageRequest : imageRequests) {
+            Long imageId = imageRequest.imageId();
+            Integer newImageIndex = imageRequest.newImageIndex();
+
+            if ((imageId != null) == (newImageIndex != null)) {
+                throw new IllegalArgumentException(
+                        "기존 이미지 ID와 새 이미지 인덱스 중 하나만 지정해야 합니다."
+                );
+            }
+
+            // 기존 이미지인 경우 새 이미지 검증 불필요
+            if (newImageIndex == null) {
+                continue;
+            }
+
+            // 실제 업로드된 새 이미지의 범위를 벗어나는 지 확인
+            if (newImageIndex < 0 || newImageIndex >= newImages.size()) {
+                throw new IllegalArgumentException(
+                        "새 이미지 인덱스가 업로드된 이미지 범위를 벗어났습니다."
+                );
+            }
+
+            // 동일한 새 이미지를 여러 번 사용하는 지 확인
+            if (!usedIndexes.add(newImageIndex)) {
+                throw new IllegalArgumentException(
+                        "동일한 새 이미지를 중복해서 사용할 수 없습니다."
+                );
+            }
+        }
+    }
+
+    // 게시글 이미지 수정
+    private void updatePostImages(
+            Long postId,
+            List<PostImageUpdateRequest> imageRequests,
+            List<PostImage> existingImages,
+            List<MultipartFile> newImages,
+            List<String> uploadedKeys
+    ) {
+        // 수정 후에도 유지할 기존 이미지 ID 저장
+        Set<Long> keptImageIds = new HashSet<>();
+
+        // 최종 이미지 목록 순서대로 기존 이미지 유지 또는 새 이미지 추가
+        for (int i = 0; i < imageRequests.size(); i++) {
+            PostImageUpdateRequest imageRequest = imageRequests.get(i);
+
+            Long imageId = imageRequest.imageId();
+            Integer newImageIndex = imageRequest.newImageIndex();
+
+            // 기존 이미지인 경우 유지 대상이며 이미지 순서 변경
+            if (imageId != null) {
+                keptImageIds.add(imageId);
+                postImageMapper.updateImageOrder(imageId, i + 1);
+            }
+
+            // 새 이미지인 경우 업로드 후 게시글 이미지로 저장
+            if (newImageIndex != null) {
+                MultipartFile newImage = newImages.get(newImageIndex);
+                String imageUrl = fileStorageService.upload(newImage, POST_IMAGE_DIRECTORY);
+                // DB 작업 실패 시 업로드한 파일 삭제할 수 있도록 추가
+                uploadedKeys.add(imageUrl);
+
+                PostImage postImage = PostImage.builder()
+                        .postId(postId)
+                        .imageUrl(imageUrl)
+                        .imageOrder(i+1)
+                        .build();
+                postImageMapper.insert(postImage);
+
+            }
+        }
+
+        // 최종 이미지 목록에 포함되지 않은 기존 이미지 삭제
+        for (PostImage existingImage : existingImages) {
+            if (!keptImageIds.contains(existingImage.getId())) {
+                postImageMapper.deleteById(existingImage.getId());
+                // DB 커밋 성공 후 실제 저장소의 이미지 삭제
+                scheduleImageDeletionAfterCommit(existingImage.getImageUrl());
+            }
         }
     }
 }

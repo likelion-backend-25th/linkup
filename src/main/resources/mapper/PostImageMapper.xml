@@ -18,4 +18,18 @@
         WHERE post_id = #{postId}
         ORDER BY image_order ASC
     </select>
+
+    <!-- 이미지 순서 변경 -->
+    <update id="updateImageOrder">
+        UPDATE post_image
+        SET image_order = #{imageOrder}
+        WHERE id = #{imageId}
+    </update>
+
+    <!-- 이미지 URL 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM post_image
+        WHERE id = #{imageId}
+    </delete>
+
 </mapper>

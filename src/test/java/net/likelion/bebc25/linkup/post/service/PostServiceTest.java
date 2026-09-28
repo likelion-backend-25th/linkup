@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -241,54 +242,83 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 본문만 수정 테스트")
-    void updateContentTest() {
+    @DisplayName("게시글 수정 테스트 | 1. 크리에이터 첨부파일 수정")
+    void updatePostTest1() throws IOException {
         // given
-        Post post = Post.builder()
-                .memberId(1L)
-                .content("수정 테스트")
-                .fileUrl("test.txt")
-                .subscriberOnly(true)
-                .build();
-        postMapper.insert(post);
-        Long postId = post.getId();
+        Long memberId = 5L;
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
+
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
+        );
+
+        MultipartFile file = createFile("test.pdf");
+
+        PostCreateResponse response = postService.createPost(memberId, request, images, file);
+
+        Post beforeUpdate = postMapper.findById(response.id());
+
+        List<PostImage> existingImages = postImageMapper.findAllByPostId(response.id());
+        MultipartFile updateFile = createFile("test2.pdf");
+        List<PostImageUpdateRequest> postImageUpdateRequests = existingImages.stream()
+                .map(image -> new PostImageUpdateRequest(
+                        image.getId(),
+                        null
+                ))
+                .toList();
+        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 게시글", true, false, postImageUpdateRequests);
 
         // when
-        PostUpdateRequest request = new PostUpdateRequest("수정된 내용", true, false);
-        postService.updatePost(postId, 1L, request, null);
+        postService.updatePost(response.id(), 5L, updateRequest, List.of(), updateFile);
 
         // then
-        Post updatedPost = postMapper.findById(postId);
-        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
-        assertThat(updatedPost.getFileUrl()).isEqualTo("test.txt");
-        assertThat(updatedPost.isSubscriberOnly()).isTrue();
+        Post updatedPost = postMapper.findById(response.id());
+        assertThat(updatedPost.getContent()).isEqualTo("수정된 게시글");
+        assertThat(updatedPost.getFileUrl()).isNotNull();
+        assertThat(updatedPost.getFileUrl()).isNotEqualTo(beforeUpdate.getFileUrl());
+
     }
 
-//    @Test
-//    @DisplayName("게시글 파일도 수정 테스트")
-//    void updateFileTest() throws IOException {
-//        // given
-//        PostCreateRequest createRequest = new PostCreateRequest("수정 테스트", true);
-//        PostCreateResponse createResponse = postService.createPost(1L, createRequest, List.of(createImage("image1.png")), createFile("test.pdf"));
-//        Long postId = createResponse.id();
-//        String oldFileUrl = postMapper.findById(postId).getFileUrl();
-//
-//        // when
-//        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 내용", true, false);
-//        postService.updatePost(postId, 1L, updateRequest, createFile("updated.pdf"));
-//
-//        // then
-//        Post updatedPost = postMapper.findById(postId);
-//        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
-//        assertThat(updatedPost.getFileUrl())
-//                .isNotEqualTo(oldFileUrl)
-//                        .startsWith("/uploads/posts/files/")
-//                                .endsWith(".pdf");
-//        assertThat(updatedPost.isSubscriberOnly()).isTrue();
-//
-//        fileStorageService.delete(updatedPost.getFileUrl());
-//        fileStorageService.delete(oldFileUrl);
-//    }
+    @Test
+    @DisplayName("게시글 수정 테스트 | 2. 게시글 이미지 수정 / 파일 삭제")
+    void updatePostTest2() throws IOException {
+        // given
+        Long memberId = 5L;
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
+
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
+        );
+
+        List<MultipartFile> newImages = List.of(
+                createImage("newImage1.jpg")
+        );
+
+        MultipartFile file = createFile("test.pdf");
+
+        PostCreateResponse response = postService.createPost(memberId, request, images, file);
+
+        List<PostImage> beforeImages = postImageMapper.findAllByPostId(response.id());
+
+        List<PostImageUpdateRequest> postImageUpdateRequests = List.of(
+                new PostImageUpdateRequest(beforeImages.getFirst().getId(), null),
+                new PostImageUpdateRequest(null, 0));
+        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 게시글", true, true, postImageUpdateRequests);
+
+        // when
+        postService.updatePost(response.id(), 5L, updateRequest, newImages, null);
+        List<PostImage> afterImages = postImageMapper.findAllByPostId(response.id());
+
+        // then
+        Post updatedPost = postMapper.findById(response.id());
+        assertThat(updatedPost.getFileUrl()).isNull();
+        assertThat(afterImages.getFirst().getImageOrder()).isEqualTo(1);
+        assertThat(afterImages.getFirst().getId()).isEqualTo(beforeImages.get(0).getId());
+        assertThat(afterImages.get(1)).isNotEqualTo(beforeImages.get(1).getId());
+        assertThat(afterImages.get(1).getImageUrl()).endsWith("jpg");
+    }
 
     // 게시글 생성
     private List<MultipartFile> createPost(Long memberId, String content, boolean subscriberOnly) throws IOException {
@@ -309,6 +339,7 @@ class PostServiceTest {
         return images;
     }
 
+    // 이미지 생성
     private MockMultipartFile createImage(String fileName) throws IOException {
         BufferedImage image = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 
@@ -318,6 +349,7 @@ class PostServiceTest {
         return new MockMultipartFile("images", fileName, "image/png", output.toByteArray());
     }
 
+    // 파일 생성
     private MockMultipartFile createFile(String fileName) {
         return new MockMultipartFile(
                 "file",

@@ -19,5 +19,5 @@ public interface PostService {
     void deletePost(Long memberId, Long postId);
 
     // 게시글 수정
-    void updatePost(Long postId, Long memberId, PostUpdateRequest request, MultipartFile file);
+    void updatePost(Long postId, Long memberId, PostUpdateRequest request, List<MultipartFile> images, MultipartFile file);
 }
