@@ -3,7 +3,7 @@ package net.likelion.bebc25.linkup.subscription.dto;
 import java.time.LocalDateTime;
 
 public record SubscribeCreatorListResponse(
-        Long subscription_id,
+        Long subscriptionId,
         Long memberId,
         Long creatorId,
         String creatorName,

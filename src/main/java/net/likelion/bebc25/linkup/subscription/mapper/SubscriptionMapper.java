@@ -16,5 +16,9 @@ public interface SubscriptionMapper {
 
     List<SubscriptionResponse> findByMemberId(@Param("memberId") Long memberId);
 
-    List<SubscribeCreatorListResponse> findSubscribeCreatorList(@Param("memberId") Long memberId);
+    List<SubscribeCreatorListResponse> findSubscribeCreatorList(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
 }

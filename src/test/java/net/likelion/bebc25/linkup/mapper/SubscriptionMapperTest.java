@@ -64,7 +64,8 @@ public class SubscriptionMapperTest {
     void findSubscribeCreatorListTest() {
         Long targetMemberId = 1L;
 
-        List<SubscribeCreatorListResponse> subList = subscriptionMapper.findSubscribeCreatorList(targetMemberId);
+        List<SubscribeCreatorListResponse> subList
+                = subscriptionMapper.findSubscribeCreatorList(targetMemberId, null, 3);
 
         assertThat(subList).isNotNull();
         for (SubscribeCreatorListResponse sub : subList) {

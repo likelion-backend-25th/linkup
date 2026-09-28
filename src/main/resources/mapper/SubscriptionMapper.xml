@@ -48,11 +48,18 @@
         WHERE member_id = #{memberId}
     </select>
 
-    <select id="findSubscribeCreatorList" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse">
+    <select id="findSubscribeCreatorList" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse">
         SELECT <include refid="subscribeCreatorListColumns" />
         FROM subscription as s
         JOIN member m ON m.id = s.creator_id
-        WHERE member_id = #{memberId}
+        <where>
+            AND s.member_id = #{memberId}
+            <if test="cursor != null">
+                AND s.id &lt; #{cursor}
+            </if>
+        </where>
+        ORDER BY s.id DESC
+        LIMIT #{limit}
     </select>
 
 </mapper>
