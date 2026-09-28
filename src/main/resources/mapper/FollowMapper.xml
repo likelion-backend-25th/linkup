@@ -18,7 +18,7 @@
         WHERE id = #{memberId}
     </update>
 
-    <!-- 팔로우 증가-->
+    <!-- 팔로워 증가 -->
     <update id ="incrementFollowerCount">
         UPDATE member
         SET follower_count = follower_count + 1
@@ -39,7 +39,7 @@
         WHERE id = #{memberId}
     </update>
 
-    <!-- 팔로우 감소-->
+    <!-- 팔로워 감소 -->
     <update id ="decrementFollowerCount">
         UPDATE member
         SET follower_count = follower_count - 1
