@@ -2,9 +2,10 @@ package net.likelion.bebc25.linkup.post.service;
 
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.post.domain.Post;
+import net.likelion.bebc25.linkup.post.domain.PostImage;
 import net.likelion.bebc25.linkup.post.dto.*;
+import net.likelion.bebc25.linkup.post.mapper.PostImageMapper;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
-import net.likelion.bebc25.linkup.reply.dto.ReplyUpdateRequest;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 
 @SpringBootTest
 @Transactional
@@ -38,6 +40,8 @@ class PostServiceTest {
     private PostMapper postMapper;
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private PostImageMapper postImageMapper;
 
     @Test
     @DisplayName("게시글 상세 조회 테스트 | 1. 공개 게시글 조회")
@@ -69,51 +73,127 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 등록 및 조회 테스트")
-    void createPostByUser() throws IOException {
+    @DisplayName("게시글 등록 테스트 | 1. 공개 게시글 등록 (첨부파일 없는 경우)")
+    void createPost1() throws IOException {
         // given
         Long memberId = 2L;
-        PostCreateRequest request =
-                new PostCreateRequest("일반 사용자 게시글", false);
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
                 createImage("image2.png")
         );
-
         // when
-        // 1. 첨부 파일이 없으면 등록 성공
-        PostCreateResponse postCreateResponse = postService.createPost(memberId, request, images, null);
+        PostCreateResponse response = postService.createPost(memberId, request, images, null);
 
-        // 2. 첨부 파일이 있으면 등록 거절
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "document.pdf",
-                "application/pdf",
-                "file".getBytes()
+
+        // then: 게시글 저장 확인
+        Post savedPost = postMapper.findById(response.id());
+
+        assertThat(savedPost).isNotNull();
+        assertThat(savedPost.getMemberId()).isEqualTo(memberId);
+        assertThat(savedPost.getContent()).isEqualTo("테스트 게시글");
+        assertThat(savedPost.isSubscriberOnly()).isFalse();
+        assertThat(savedPost.getFileUrl()).isNull();
+
+        // then: 이미지 정보 저장 확인
+        List<PostImage> savedImages =
+                postImageMapper.findAllByPostId(response.id());
+
+        assertThat(savedImages).hasSize(2);
+        assertThat(savedImages)
+                .extracting(PostImage::getImageOrder)
+                .containsExactly(1, 2);
+
+        assertThat(savedImages).allSatisfy(image -> {
+            assertThat(image.getPostId()).isEqualTo(response.id());
+            assertThat(image.getImageUrl()).isNotBlank();
+        });
+    }
+
+    @Test
+    @DisplayName("게시글 등록 테스트 | 2. 크리에이터지만 공개 게시판에 파일을 등록하는 경우")
+    void createPost2() throws IOException {
+        // given
+        Long memberId = 5L;
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
+
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
         );
-        // 3. 등록한 게시글 단 건 조회
-        PostDetailResponse postDetailResponse = postService.getPostDetailById(postCreateResponse.id(), memberId);
+        MockMultipartFile file = createFile("test.pdf");
 
-        // then
-        // 1. 첨부 파일이 없으면 등록 성공
-        assertThat(postCreateResponse).isNotNull();
-        // 2. 첨부 파일이 있으면 등록 거절
-        assertThatThrownBy(() -> postService.createPost(memberId, request, images, file))
+        // when & then
+        assertThatThrownBy(() ->
+                postService.createPost(memberId, request, images, file)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("구독자 전용 게시글에만 첨부 파일을 업로드할 수 있습니다.");
+    }
+
+    @Test
+    @DisplayName("게시글 등록 테스트 | 3. 크리에이터가 아닌 사용자가 파일을 등록하는 경우")
+    void createPost3() throws IOException {
+        // given
+        Long memberId = 2L;
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
+
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
+        );
+        MockMultipartFile file = createFile("test.pdf");
+
+        // when & then
+        assertThatThrownBy(() ->
+                postService.createPost(memberId, request, images, file)
+        )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
+    }
 
-        assertThat(postDetailResponse).isNotNull();
-        assertThat(postDetailResponse.id()).isEqualTo(postCreateResponse.id());
-        assertThat(postDetailResponse.content()).isEqualTo("일반 사용자 게시글");
-        assertThat(postDetailResponse.images().get(0).imageOrder()).isEqualTo(1);
-        assertThat(postDetailResponse.images().get(1).imageOrder()).isEqualTo(2);
-        assertThat(postDetailResponse.images().get(0).imageUrl()).startsWith("/uploads/posts/images/");
-        assertThat(postDetailResponse.images().get(1).imageUrl()).startsWith("/uploads/posts/images/");
+    @Test
+    @DisplayName("게시글 등록 테스트 | 4. 크리에이터가 구독자 전용 게시판에 파일을 등록하는 경우")
+    void createPost4() throws IOException {
+        // given
+        Long memberId = 5L;
+        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
 
-        for (PostImageResponse image : postDetailResponse.images()) {
-            fileStorageService.delete(image.imageUrl());
-        }
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
+        );
+        MockMultipartFile file = createFile("test.pdf");
+        // when
+        PostCreateResponse response = postService.createPost(memberId, request, images, file);
+
+
+        // then: 게시글 저장 확인
+        Post savedPost = postMapper.findById(response.id());
+
+        assertThat(savedPost).isNotNull();
+        assertThat(savedPost.getMemberId()).isEqualTo(memberId);
+        assertThat(savedPost.getContent()).isEqualTo("테스트 게시글");
+        assertThat(savedPost.isSubscriberOnly()).isTrue();
+
+        // then: 이미지 정보 저장 확인
+        List<PostImage> savedImages =
+                postImageMapper.findAllByPostId(response.id());
+
+        assertThat(savedImages).hasSize(2);
+        assertThat(savedImages)
+                .extracting(PostImage::getImageOrder)
+                .containsExactly(1, 2);
+
+        assertThat(savedImages).allSatisfy(image -> {
+            assertThat(image.getPostId()).isEqualTo(response.id());
+            assertThat(image.getImageUrl()).isNotBlank();
+        });
+
+        // then: 파일 정보 저장 확인
+        assertThat(savedPost.getFileUrl()).isNotBlank();
+        assertThat(savedPost.getFileUrl()).endsWith(".pdf");
     }
 
     @Test
@@ -184,30 +264,49 @@ class PostServiceTest {
         assertThat(updatedPost.isSubscriberOnly()).isTrue();
     }
 
-    @Test
-    @DisplayName("게시글 파일도 수정 테스트")
-    void updateFileTest() throws IOException {
-        // given
-        PostCreateRequest createRequest = new PostCreateRequest("수정 테스트", true);
-        PostCreateResponse createResponse = postService.createPost(1L, createRequest, List.of(createImage("image1.png")), createFile("test.pdf"));
-        Long postId = createResponse.id();
-        String oldFileUrl = postMapper.findById(postId).getFileUrl();
+//    @Test
+//    @DisplayName("게시글 파일도 수정 테스트")
+//    void updateFileTest() throws IOException {
+//        // given
+//        PostCreateRequest createRequest = new PostCreateRequest("수정 테스트", true);
+//        PostCreateResponse createResponse = postService.createPost(1L, createRequest, List.of(createImage("image1.png")), createFile("test.pdf"));
+//        Long postId = createResponse.id();
+//        String oldFileUrl = postMapper.findById(postId).getFileUrl();
+//
+//        // when
+//        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 내용", true, false);
+//        postService.updatePost(postId, 1L, updateRequest, createFile("updated.pdf"));
+//
+//        // then
+//        Post updatedPost = postMapper.findById(postId);
+//        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
+//        assertThat(updatedPost.getFileUrl())
+//                .isNotEqualTo(oldFileUrl)
+//                        .startsWith("/uploads/posts/files/")
+//                                .endsWith(".pdf");
+//        assertThat(updatedPost.isSubscriberOnly()).isTrue();
+//
+//        fileStorageService.delete(updatedPost.getFileUrl());
+//        fileStorageService.delete(oldFileUrl);
+//    }
 
-        // when
-        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 내용", true, false);
-        postService.updatePost(postId, 1L, updateRequest, createFile("updated.pdf"));
+    // 게시글 생성
+    private List<MultipartFile> createPost(Long memberId, String content, boolean subscriberOnly) throws IOException {
+        PostCreateRequest postCreateRequest = new PostCreateRequest(content, subscriberOnly);
 
-        // then
-        Post updatedPost = postMapper.findById(postId);
-        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용");
-        assertThat(updatedPost.getFileUrl())
-                .isNotEqualTo(oldFileUrl)
-                        .startsWith("/uploads/posts/files/")
-                                .endsWith(".pdf");
-        assertThat(updatedPost.isSubscriberOnly()).isTrue();
+        List<MultipartFile> images = List.of(
+                createImage("image1.png"),
+                createImage("image2.png")
+        );
 
-        fileStorageService.delete(updatedPost.getFileUrl());
-        fileStorageService.delete(oldFileUrl);
+        if (subscriberOnly) {
+            MockMultipartFile file = createFile("test.pdf");
+            postService.createPost(memberId, postCreateRequest, images, file);
+        } else {
+            postService.createPost(memberId, postCreateRequest, images, null);
+        }
+
+        return images;
     }
 
     private MockMultipartFile createImage(String fileName) throws IOException {

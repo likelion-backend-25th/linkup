@@ -3,6 +3,8 @@ package net.likelion.bebc25.linkup.post.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
+import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.domain.PostImage;
 import net.likelion.bebc25.linkup.post.dto.*;
@@ -42,26 +44,37 @@ public class PostServiceImpl implements PostService {
     private final FileStorageService fileStorageService;
     private final PostReadAccessService postReadAccessService;
     private final PostLikeMapper postLikeMapper;
+    private final MemberMapper memberMapper;
 
     @Override
     @Transactional
     public PostCreateResponse createPost(Long memberId, PostCreateRequest request, List<MultipartFile> images, MultipartFile file) {
+        Member member = memberMapper.findById(memberId);
+        // 회원 존재 검사
+        if (member == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "회원이 존재하지 않습니다."
+            );
+        }
 
-        validateImages(images);
-        validateFile(file);
+        List<String> uploadedKeys = new ArrayList<>();
+        registerUploadRollbackCleanUp(uploadedKeys); // 롤백 시 파일, 이미지 삭제
+        validateImages(images); // 이미지 검증
+        validateFile(file); // 파일 검증
+
+        // 구독자 전용 게시글 게시 권한 검사
+        if (request.subscriberOnly() && !isCreator(member)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "크리에이터만 구독자 전용 게시글을 작성할 수 있습니다.");
+        }
 
         boolean hasFile  = file != null && !file.isEmpty();
-        String imageKey = null;
         String fileKey = null;
 
+        // 파일이 존재하는 경우
         if (hasFile) {
-            if (!isCreator(memberId)) {
-                throw new IllegalArgumentException("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
-            }
-            if (!request.subscriberOnly()) {
-                throw new IllegalArgumentException("첨부 파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
-            }
+            validateFileAttachmentPermission(member, request.subscriberOnly());
             fileKey = fileStorageService.upload(file, POST_FILE_DIRECTORY);
+            uploadedKeys.add(fileKey);
         }
 
         Post post = Post.builder()
@@ -72,23 +85,13 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         postMapper.insert(post);
-
-        for (int i = 0; i < images.size(); i++) {
-            imageKey = fileStorageService.upload(images.get(i), POST_IMAGE_DIRECTORY);
-
-            PostImage postImage = PostImage.builder()
-                    .postId(post.getId())
-                    .imageUrl(imageKey)
-                    .imageOrder(i+1)
-                    .build();
-
-            postImageMapper.insert(postImage);
-        }
-
+        // 이미지 저장
+        uploadAndSavePostImages(post.getId(), images, uploadedKeys);
 
         return PostCreateResponse.from(post);
     }
 
+    @Transactional
     @Override
     public PostDetailResponse getPostDetailById(Long postId, Long memberId) {
         PostDetailRow postDetailRow = postMapper.findDetailById(postId);
@@ -160,7 +163,7 @@ public class PostServiceImpl implements PostService {
     public void updatePost(Long postId, Long memberId, PostUpdateRequest request, MultipartFile file) {
         Post existingPost = getOwnedPostOrThrow(postId, memberId);
 
-        String fileKey = resolveFileKey(existingPost, memberId, request, file);
+        String fileKey = resolveFileKey(existingPost, memberMapper.findById(memberId), request, file);
 
         Post post = Post.builder()
                 .id(postId)
@@ -216,9 +219,57 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    // 롤백 시 파일 정리
+    private void registerUploadRollbackCleanUp(List<String> uploadedKeys) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status != STATUS_ROLLED_BACK) {
+                            return;
+                        }
+                        for (String key : uploadedKeys) {
+                            try {
+                                fileStorageService.delete(key);
+                            } catch (RuntimeException e) {
+                                log.error("롤백 후 업로드 파일 정리 실패: {}", key, e);
+                            }
+                        }
+                    }
+                }
+        );
+    }
+
+    // 파일 첨부 규칙 검사
+    private void validateFileAttachmentPermission(Member member, boolean subscriberOnly) {
+        if (!member.getRole().equals("ROLE_CREATOR")) {
+            throw new IllegalArgumentException("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
+        }
+
+        if (!subscriberOnly) {
+            throw new IllegalArgumentException("구독자 전용 게시글에만 첨부 파일을 업로드할 수 있습니다.");
+        }
+    }
+
+    // 이미지 저장
+    private void uploadAndSavePostImages(Long postId, List<MultipartFile> images, List<String> uploadedKeys) {
+        for (int i = 0; i < images.size(); i++) {
+            String imageKey = fileStorageService.upload(images.get(i), POST_IMAGE_DIRECTORY);
+            uploadedKeys.add(imageKey);
+
+            PostImage postImage = PostImage.builder()
+                    .postId(postId)
+                    .imageUrl(imageKey)
+                    .imageOrder(i+1)
+                    .build();
+
+            postImageMapper.insert(postImage);
+        }
+    }
+
     // 크리에이터인지 확인 (임시)
-    private boolean isCreator(Long memberId) {
-        return memberId == 1L;
+    private boolean isCreator(Member member) {
+        return member.getRole().equals("ROLE_CREATOR");
     }
 
     // 게시글 조회, 작성자 본인 확인
@@ -240,7 +291,7 @@ public class PostServiceImpl implements PostService {
     }
 
     // 수정할 게시글 규칙 검사 후 파일 업로드 후 파일 키 반환
-    private String resolveFileKey(Post existingPost, Long memberId,
+    private String resolveFileKey(Post existingPost, Member member,
                                   PostUpdateRequest request, MultipartFile file) {
         if (request.removeFile() && file != null) {
             throw new ResponseStatusException(
@@ -258,7 +309,7 @@ public class PostServiceImpl implements PostService {
             }
         } else {
             validateFile(file);
-            if (!isCreator(memberId)) {
+            if (!isCreator(member)) {
                 throw new IllegalArgumentException("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
             }
             if (!request.subscriberOnly()) {
