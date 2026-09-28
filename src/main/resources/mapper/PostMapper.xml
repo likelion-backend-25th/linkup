@@ -10,11 +10,29 @@
         VALUES ( #{memberId}, #{content}, #{fileUrl}, #{subscriberOnly} )
     </insert>
 
-    <!-- 게시글 상세 조회 -->
+    <!-- 게시글 단 건 조회 -->
     <select id="findById" parameterType="long" resultType="Post">
         SELECT id, member_id, content, file_url, like_count, subscriber_only, created_at, updated_at
         FROM post
         WHERE id = #{postId}
+    </select>
+
+    <!-- 게시글 상세 조회 -->
+    <select id="findDetailById" parameterType="long" resultType="PostDetailRow">
+        SELECT
+        p.id        AS id,
+        m.id        AS member_id,
+        name,
+        unique_id,
+        profile_image,
+        content,
+        file_url,
+        like_count,
+        subscriber_only,
+        p.created_at   AS created_at,
+        p.updated_at   AS updated_at
+        FROM post p JOIN member m ON p.member_id = m.id
+        WHERE p.id = #{postId}
     </select>
 
     <!-- 게시글 삭제 -->

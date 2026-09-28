@@ -23,10 +23,10 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void createdPostReport(Long memberId, Long postId, ReportCreateRequest request) {
         // 신고 대상 게시글 조회
-        PostDetailResponse post = postService.getPostDetailById(postId);
+        PostDetailResponse postDetailResponse = postService.getPostDetailById(postId, memberId);
 
         // 본인의 게시글은 신고 X
-        if(memberId.equals(post.memberId())){
+        if(memberId.equals(postDetailResponse.memberId())) {
             throw new IllegalArgumentException("본인의 게시글은 신고할 수 없습니다.");
         }
         // 신고 등록

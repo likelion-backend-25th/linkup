@@ -7,6 +7,7 @@ import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.domain.PostImage;
 import net.likelion.bebc25.linkup.post.dto.*;
 import net.likelion.bebc25.linkup.post.mapper.PostImageMapper;
+import net.likelion.bebc25.linkup.post.mapper.PostLikeMapper;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,8 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final PostImageMapper postImageMapper;
     private final FileStorageService fileStorageService;
+    private final PostReadAccessService postReadAccessService;
+    private final PostLikeMapper postLikeMapper;
 
     @Override
     @Transactional
@@ -87,16 +90,23 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDetailResponse getPostDetailById(Long postId) {
-        Post post = postMapper.findById(postId);
+    public PostDetailResponse getPostDetailById(Long postId, Long memberId) {
+        PostDetailRow postDetailRow = postMapper.findDetailById(postId);
 
-        if (post == null) {
-            throw new NoSuchElementException("존재하지 않는 게시글입니다.");
+        if (postDetailRow == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."
+            );
+        }
+
+        // 구독자 전용 게시글일 경우
+        if (postDetailRow.isSubscriberOnly()) {
+            postReadAccessService.isSubscriber(memberId, postDetailRow.getMemberId());
         }
 
         List<PostImage> images = postImageMapper.findAllByPostId(postId);
-
-        return PostDetailResponse.from(post, images);
+        boolean likedByMe = postLikeMapper.existsByPostIdAndMemberId(postId, memberId);
+        return PostDetailResponse.from(postDetailRow, images, likedByMe);
     }
 
     @Override
