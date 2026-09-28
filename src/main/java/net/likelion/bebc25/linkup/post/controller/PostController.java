@@ -79,16 +79,26 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // 게시글 수정
+    @Operation(summary = "게시글 수정", description = "게시글 ID에 해당하는 게시글을 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "게시글 수정 성공"),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "이미지/첨부파일 검증 실패",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "게시글 수정 권한 없음 또는 구독자 전용 게시글 작성 권한 없음", content = @Content),
+            @ApiResponse(responseCode = "404", description = "게시글 또는 회원이 존재하지 않음", content = @Content)
+    })
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable Long postId,
             @Valid @RequestPart("request")PostUpdateRequest request,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @AuthenticationPrincipal CustomUserDetails userDetails
             ) {
         Long memberId = 1L; //userDetails.getId();
-        postService.updatePost(postId, memberId, request, file);
+        postService.updatePost(postId, memberId, request, newImages, file);
 
         return ResponseEntity.noContent().build();
     }
