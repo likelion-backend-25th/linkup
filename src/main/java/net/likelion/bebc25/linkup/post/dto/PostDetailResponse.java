@@ -10,28 +10,36 @@ import java.util.List;
 public record PostDetailResponse (
         Long id,
         Long memberId,
+        String name,
+        String uniqueId,
+        String profileImage,
         String content,
         String fileUrl,
         int likeCount,
         boolean subscriberOnly,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
+        boolean likedByMe,
         List<PostImageResponse> images
 ) {
-    public static PostDetailResponse from(Post post, List<PostImage> images) {
+    public static PostDetailResponse from(PostDetailRow postDetailRow, List<PostImage> images, boolean likedByMe) {
         List<PostImageResponse> imageResponses = images.stream()
                 .map(PostImageResponse::from)
                 .toList();
 
         return new PostDetailResponse(
-                post.getId(),
-                post.getMemberId(),
-                post.getContent(),
-                post.getFileUrl(),
-                post.getLikeCount(),
-                post.isSubscriberOnly(),
-                post.getCreatedAt(),
-                post.getUpdatedAt(),
+                postDetailRow.getId(),
+                postDetailRow.getMemberId(),
+                postDetailRow.getName(),
+                postDetailRow.getUniqueId(),
+                postDetailRow.getProfileImage(),
+                postDetailRow.getContent(),
+                postDetailRow.getFileUrl(),
+                postDetailRow.getLikeCount(),
+                postDetailRow.isSubscriberOnly(),
+                postDetailRow.getCreatedAt(),
+                postDetailRow.getUpdatedAt(),
+                likedByMe,
                 imageResponses
         );
     }

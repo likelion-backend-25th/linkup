@@ -4,6 +4,8 @@ import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.dto.*;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
+import net.likelion.bebc25.linkup.reply.dto.ReplyUpdateRequest;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,35 @@ class PostServiceTest {
     private FileStorageService fileStorageService;
 
     @Test
+    @DisplayName("게시글 상세 조회 테스트 | 1. 공개 게시글 조회")
+    public void getPostDetail1() {
+        // given
+
+        // when
+        PostDetailResponse postDetailResponse = postService.getPostDetailById(2L, 1L);
+
+        // then
+        assertThat(postDetailResponse).isNotNull();
+        assertThat(postDetailResponse.id()).isEqualTo(2L);
+        assertThat(postDetailResponse.memberId()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 테스트 | 2. 구독자 전용 게시글 조회")
+    public void getPostDetail2() {
+        // given
+
+        // when
+        assertThatThrownBy(() ->
+                postService.getPostDetailById(12L, 1L)
+        )
+                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
+                        AssertionsForClassTypes.assertThat(exception.getStatusCode())
+                                .isEqualTo(HttpStatus.FORBIDDEN)
+                );
+    }
+
+    @Test
     @DisplayName("게시글 등록 및 조회 테스트")
     void createPostByUser() throws IOException {
         // given
@@ -62,7 +93,7 @@ class PostServiceTest {
                 "file".getBytes()
         );
         // 3. 등록한 게시글 단 건 조회
-        PostDetailResponse postDetailResponse = postService.getPostDetailById(postCreateResponse.id());
+        PostDetailResponse postDetailResponse = postService.getPostDetailById(postCreateResponse.id(), memberId);
 
         // then
         // 1. 첨부 파일이 없으면 등록 성공

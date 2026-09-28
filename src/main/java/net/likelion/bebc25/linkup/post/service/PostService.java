@@ -13,7 +13,7 @@ public interface PostService {
     PostCreateResponse createPost(Long memberId, PostCreateRequest request, List<MultipartFile> images, MultipartFile file);
 
     // 게시글 단 건 조회
-    PostDetailResponse getPostDetailById(Long id);
+    PostDetailResponse getPostDetailById(Long id, Long memberId);
 
     // 게시글 삭제
     void deletePost(Long memberId, Long postId);

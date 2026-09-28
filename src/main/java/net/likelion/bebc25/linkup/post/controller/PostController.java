@@ -1,5 +1,9 @@
 package net.likelion.bebc25.linkup.post.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
@@ -37,13 +41,19 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 게시글 상세 조회
+    @Operation(summary = "게시글 단 건 상세 조회", description = "게시글 ID에 해당하는 게시글의 상세 정보를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "게시글이 존재하지 않음", content = @Content),
+            @ApiResponse(responseCode = "403", description = "게시글에 접근할 수 없음", content = @Content)
+    })
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPostDetail(
-            @PathVariable Long postId
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PostDetailResponse response = postService.getPostDetailById(postId);
-
+        Long memberId = 1L;
+        PostDetailResponse response = postService.getPostDetailById(postId, memberId);
         return ResponseEntity.ok(response);
     }
 

@@ -1,6 +1,9 @@
 package net.likelion.bebc25.linkup.post.mapper;
 
+import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import net.likelion.bebc25.linkup.post.domain.Post;
+import net.likelion.bebc25.linkup.post.dto.PostDetailRow;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,26 @@ public class PostMapperTest {
     @Autowired
     private PostMapper postMapper;
 
+    @Autowired
+    private MemberMapper memberMapper;
+
+    @Test
+    @DisplayName("게시글 상세 조회 테스트")
+    public void getPostDetailTest() {
+        // given
+        Post post = createPost(1L, "테스트 게시글", false);
+        Member member = memberMapper.findById(post.getMemberId());
+
+        // when
+        PostDetailRow row = postMapper.findDetailById(post.getId());
+
+        // then
+        assertThat(row.getId()).isEqualTo(post.getId());
+        assertThat(row.getContent()).isEqualTo(post.getContent());
+        assertThat(row.getMemberId()).isEqualTo(post.getMemberId());
+        assertThat(row.getName()).isEqualTo(member.getName());
+        assertThat(row.getUniqueId()).isEqualTo(member.getUniqueId());
+    }
     @Test
     @DisplayName("신규 게시글 등록 및 조회 테스트")
     public void createPostTest() {
@@ -89,5 +112,15 @@ public class PostMapperTest {
         assertThat(postDetail.getContent()).isEqualTo(updatePost.getContent());
         assertThat(postDetail.isSubscriberOnly()).isEqualTo(updatePost.isSubscriberOnly());
         assertThat(postDetail.getFileUrl()).isEqualTo(updatePost.getFileUrl());
+    }
+
+    private Post createPost(Long memberId, String content, boolean subscriberOnly) {
+        Post post = Post.builder()
+                .memberId(memberId)
+                .content(content)
+                .subscriberOnly(subscriberOnly)
+                .build();
+        postMapper.insert(post);
+        return post;
     }
 }
