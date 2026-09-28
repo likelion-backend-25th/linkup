@@ -40,25 +40,21 @@ public class PostMapperTest {
         assertThat(row.getUniqueId()).isEqualTo(member.getUniqueId());
     }
     @Test
-    @DisplayName("신규 게시글 등록 및 조회 테스트")
+    @DisplayName("신규 게시글 등록 테스트")
     public void createPostTest() {
         // given
-        Post post = Post.builder()
-                .memberId(1L)
-                .content("테스트 게시글")
-                .subscriberOnly(false)
-                .build();
+        Post post = createPost(1L, "테스트 게시글", false);
 
         // when
         int result = postMapper.insert(post);
-        Post postDetail = postMapper.findById(post.getId());
+        Post postResult = postMapper.findById(post.getId());
 
         // then
         assertThat(result).isEqualTo(1);
         assertThat(post.getId()).isNotNull();
-        assertThat(postDetail.getMemberId()).isEqualTo(1L);
-        assertThat(postDetail.getContent()).isEqualTo("테스트 게시글");
-        assertThat(postDetail.isSubscriberOnly()).isEqualTo(false);
+        assertThat(postResult.getMemberId()).isEqualTo(1L);
+        assertThat(postResult.getContent()).isEqualTo("테스트 게시글");
+        assertThat(postResult.isSubscriberOnly()).isEqualTo(false);
     }
 
     @Test

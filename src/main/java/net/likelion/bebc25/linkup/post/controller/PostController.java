@@ -2,6 +2,7 @@ package net.likelion.bebc25.linkup.post.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -28,7 +29,16 @@ public class PostController {
 
     private final PostService postService;
 
-    // 게시글 등록
+    @Operation(summary = "게시글 등록", description = "게시글을 등록하고 게시글 ID를 응답합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 등록 성공"),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "이미지/첨부파일 검증 실패",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "회원이 존재하지 않음", content = @Content),
+            @ApiResponse(responseCode = "403", description = "구독자 전용 게시글 작성 권한 없음", content = @Content)
+    })
     @PostMapping
     public ResponseEntity<PostCreateResponse> createPost(
             @Valid @RequestPart("request") PostCreateRequest request,
