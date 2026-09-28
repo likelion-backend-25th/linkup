@@ -9,14 +9,12 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
+import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
 import net.likelion.bebc25.linkup.subscription.service.SubscriptionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -45,5 +43,25 @@ public class SubscriptionController {
         PagingSubListResponse responses
                 = subscriptionService.getSubscribeCreatorList(memberId, cursor, size);
         return ResponseEntity.ok(responses);
+    }
+
+
+    @Operation(
+            summary = "구독 내역 상세 조회",
+            description = "구독 id 값을 사용하여 구독 내역을 상세 조회 한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "구독 상세 내역 조회 성공")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<SubscriptionDetailResponse> getSubscriptionDetail(
+            // 로그인 되야함을 명시, 값은 쓰지 않음
+            @Parameter(description = "로그인 회원 ID", example = "1")
+            @RequestHeader(value = "X-Member-Id", required = false) Long memberId,
+            @Parameter(description = "구독 내역 ID", example = "1")
+            @PathVariable("id") Long subscriptionId
+    ) {
+        SubscriptionDetailResponse response = subscriptionService.getSubscriptionDetail(subscriptionId);
+        return ResponseEntity.ok(response);
     }
 }

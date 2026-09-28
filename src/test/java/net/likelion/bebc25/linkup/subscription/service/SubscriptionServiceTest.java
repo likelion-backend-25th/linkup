@@ -3,6 +3,7 @@ package net.likelion.bebc25.linkup.subscription.service;
 import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
 import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
+import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,5 +56,17 @@ public class SubscriptionServiceTest {
 
         assertThat(response.hasNext()).isFalse();
         assertThat(response.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    void getSubscriptionDetailTest() {
+        Long targetId = 1L;
+
+        SubscriptionDetailResponse result = subscriptionService.getSubscriptionDetail(targetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.subscriptionId()).isEqualTo(targetId);
+        System.out.println(result);
     }
 }

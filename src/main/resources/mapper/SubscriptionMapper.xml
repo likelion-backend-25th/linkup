@@ -17,6 +17,18 @@
         next_billing_at
     </sql>
 
+    <sql id="subscriptionDetailColumns">
+        s.id AS subscription_id,
+        m.name AS name,
+        m.unique_id AS unique_id,
+        m.email AS email,
+        s.price AS price,
+        s.status AS status,
+        s.start_date AS start_date,
+        s.end_date AS end_date,
+        s.next_billing_at AS next_billing_at
+    </sql>
+
     <sql id="subscribeCreatorListColumns">
         s.id AS subscription_id,
         s.member_id AS member_id,
@@ -25,10 +37,7 @@
         m.unique_id AS creator_unique_id,
         m.profile_image AS profile_image,
         m.introduction AS introduction,
-        s.status AS status,
-        s.start_date AS start_date,
-        s.end_date AS end_date,
-        s.next_billing_at AS next_billing_at
+        s.status AS status
     </sql>
 
     <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
@@ -46,6 +55,13 @@
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
         WHERE member_id = #{memberId}
+    </select>
+
+    <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse">
+        SELECT <include refid="subscriptionDetailColumns" />
+        FROM subscription as s
+        JOIN member m ON m.id = s.creator_id
+        WHERE s.id = #{subscriptionId}
     </select>
 
     <select id="findSubscribeCreatorList" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse">
