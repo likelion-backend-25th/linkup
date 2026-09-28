@@ -80,7 +80,7 @@ class SearchMapperTest {
     @DisplayName("내가 팔로우한 사용자만 검색한다")
     void searchFollowingMembers() {
 
-        Long memberId = 1L;
+        Long memberId = 10L;
 
         List<MemberSearchResponse> result =
                 searchMapper.searchMembers(
@@ -94,7 +94,7 @@ class SearchMapperTest {
         assertThat(result)
                 .extracting(MemberSearchResponse::id)
                 .containsExactlyInAnyOrder(
-                        2L, 3L, 4L, 5L
+                        11L, 12L, 13L, 14L, 62L, 75L
                 );
     }
 
@@ -102,7 +102,7 @@ class SearchMapperTest {
     @DisplayName("내가 구독한 사용자만 검색한다")
     void searchSubscribingMembers() {
 
-        Long memberId = 1L;
+        Long memberId = 2L;
 
         List<MemberSearchResponse> result =
                 searchMapper.searchMembers(
@@ -115,7 +115,7 @@ class SearchMapperTest {
 
         assertThat(result)
                 .extracting(MemberSearchResponse::id)
-                .containsExactly(27L);
+                .containsExactly(5L);
     }
 
     @Test

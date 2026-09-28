@@ -1,5 +1,7 @@
 package net.likelion.bebc25.linkup.subscription.service;
 
+import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
+import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,14 +22,38 @@ public class SubscriptionServiceTest {
     @Test
     @DisplayName("사용자의 구독 리스트 조회 테스트")
     void getSubscribeCreatorListTest() {
-        Long targetMemberId = 1L;
+        // 다음 페이지가 있으면 요청 개수만 반환하고 다음 커서를 제공
+        // when
+        Long memberId = 1L;
+        Long cursor = null;
+        int size = 3;
 
-        List<SubscribeCreatorListResponse> subList = subscriptionService.getSubscribeCreatorList(targetMemberId);
+        PagingSubListResponse response
+                = subscriptionService.getSubscribeCreatorList(memberId, cursor, size);
 
-        assertThat(subList).isNotNull();
-        for (SubscribeCreatorListResponse sub : subList) {
-            assertThat(sub.memberId()).isEqualTo(targetMemberId);
-            System.out.println(sub.toString());
-        }
+        // then
+        assertThat(response.subCreatorList())
+                .extracting(SubscribeCreatorListResponse::subscriptionId)
+                .containsExactly(77L, 76L, 75L);
+
+        assertThat(response.hasNext()).isTrue();
+        assertThat(response.nextCursor()).isEqualTo(75L);
+
+
+        // 남은 게시글 수가 요청 개수와 같거나 적으면 다음 페이지는 없음
+        // when
+        memberId = 1L;
+        cursor = 52L;
+        size = 3;
+
+        response = subscriptionService.getSubscribeCreatorList(memberId, cursor, size);
+
+        // then
+        assertThat(response.subCreatorList())
+                .extracting(SubscribeCreatorListResponse::subscriptionId)
+                .containsExactly(51L, 38L);
+
+        assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
     }
 }
