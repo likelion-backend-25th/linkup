@@ -5,12 +5,15 @@ import net.likelion.bebc25.linkup.reply.domain.Reply;
 import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
 import net.likelion.bebc25.linkup.report.dto.ReportCreateRequest;
 import net.likelion.bebc25.linkup.report.service.ReportService;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.NoSuchElementException;
 
@@ -81,8 +84,10 @@ class ReportServiceTest {
                         postId,
                         request
                 )
-        )       .isInstanceOf(NoSuchElementException.class)
-                .hasMessage("존재하지 않는 게시글입니다.");
+        )        .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
+                AssertionsForClassTypes.assertThat(exception.getStatusCode())
+                        .isEqualTo(HttpStatus.NOT_FOUND)
+        );
     }
 
 
