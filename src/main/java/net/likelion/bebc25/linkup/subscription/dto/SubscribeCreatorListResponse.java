@@ -10,9 +10,6 @@ public record SubscribeCreatorListResponse(
         String creatorUniqueId,
         String profileImage,
         String introduction,
-        String status,
-        LocalDateTime startDate,
-        LocalDateTime endDate,
-        LocalDateTime nextBillingAt
+        String status
 ) {
 }
