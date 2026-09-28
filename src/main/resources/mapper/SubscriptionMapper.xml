@@ -78,4 +78,10 @@
         LIMIT #{limit}
     </select>
 
+    <select id="countSubscribeCreator" resultType="int">
+        SELECT COUNT(*) AS count
+        FROM subscription
+        WHERE member_id = #{memberId}
+    </select>
+
 </mapper>

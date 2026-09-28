@@ -37,6 +37,7 @@ public class SubscriptionServiceTest {
                 .extracting(SubscribeCreatorListResponse::subscriptionId)
                 .containsExactly(77L, 76L, 75L);
 
+        assertThat(response.subCreatorCount()).isEqualTo(28);
         assertThat(response.hasNext()).isTrue();
         assertThat(response.nextCursor()).isEqualTo(75L);
 

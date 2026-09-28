@@ -24,7 +24,8 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     ) {
         List<SubscribeCreatorListResponse> sublists
                 = subscriptionMapper.findSubscribeCreatorList(memberId, cursor, size + 1);
-        return toPagingSubListResponse(sublists, size);
+        int subCreatorCount = subscriptionMapper.countSubscribeCreator(memberId);
+        return toPagingSubListResponse(sublists, subCreatorCount, size);
     }
 
     // 로그인 붙으면 확인절차 로직 만들것
@@ -33,7 +34,8 @@ public class SubscriptionServiceImpl implements SubscriptionService{
         return subscriptionMapper.findBySubscriptionId(subscriptionId);
     }
 
-    private PagingSubListResponse toPagingSubListResponse(List<SubscribeCreatorListResponse> result, int size) {
+    private PagingSubListResponse toPagingSubListResponse(
+            List<SubscribeCreatorListResponse> result, int subCreatorCount, int size) {
         boolean hasNext = result.size() > size;
 
         List<SubscribeCreatorListResponse> subCreatorlist = List.copyOf(
@@ -44,6 +46,6 @@ public class SubscriptionServiceImpl implements SubscriptionService{
                 ? subCreatorlist.getLast().subscriptionId()
                 : null;
 
-        return new PagingSubListResponse(subCreatorlist, nextCursor, hasNext);
+        return new PagingSubListResponse(subCreatorlist, subCreatorCount, nextCursor, hasNext);
     }
 }

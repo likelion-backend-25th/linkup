@@ -24,4 +24,6 @@ public interface SubscriptionMapper {
             @Param("cursor") Long cursor,
             @Param("limit") int limit
     );
+
+    int countSubscribeCreator(@Param("memberId") Long memberId);
 }

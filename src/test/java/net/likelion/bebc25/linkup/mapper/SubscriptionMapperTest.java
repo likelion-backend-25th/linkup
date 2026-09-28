@@ -86,4 +86,14 @@ public class SubscriptionMapperTest {
             System.out.println(sub.toString());
         }
     }
+
+    @Test
+    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    void countSubscribeCreatorTest() {
+        Long targetId = 1L;
+
+        int result = subscriptionMapper.countSubscribeCreator(targetId);
+
+        assertThat(result).isEqualTo(28);
+    }
 }
