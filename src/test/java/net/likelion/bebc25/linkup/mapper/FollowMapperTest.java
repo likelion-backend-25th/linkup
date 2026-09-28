@@ -20,8 +20,8 @@ public class FollowMapperTest {
     @DisplayName("팔로우 추가 테스트")
     void addFollowTest() {
 
-        Long memberId = 2L;
-        Long targetId = 10L;
+        Long memberId = 1L;
+        Long targetId = 77L;
 
         int result = followMapper.addFollow(memberId, targetId);
 
@@ -36,8 +36,8 @@ public class FollowMapperTest {
     @DisplayName("팔로우 추가 후 팔로워 수와 팔로잉 수가 1 증가한다")
     void addFollowIncreasesCounts() {
 
-        Long memberId = 2L;
-        Long targetId = 10L;
+        Long memberId = 1L;
+        Long targetId = 77L;
 
         int followerBefore =
                 followMapper.countFollowers(targetId);
