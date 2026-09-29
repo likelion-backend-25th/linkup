@@ -36,4 +36,11 @@ public interface FeedMapper {
             @Param("cursor") Long cursor,
             @Param("limit") int limit
     );
+
+    // 전체 게시글 좋아요 순으로 피드 조회
+    List<PostCardResponse> findPopularFeed(
+            @Param("cursorLikeCount") Integer cursorLikeCount,
+            @Param("cursorPostId") Long cursorPostId,
+            @Param("limit") int limit
+    );
 }

@@ -20,4 +20,7 @@ public interface FeedService {
 
     // 특정 회원의 구독자 전용 게시글 조회
     FeedResponse getTargetSubscriberOnlyFeed(Long memberId, Long targetId, Long cursor, int size);
+
+    // 전체 공개 게시글 좋아요 순 피드 조회
+    FeedResponse getPopularFeed(Integer cursorLikeCount, Long cursorPostId, int size);
 }

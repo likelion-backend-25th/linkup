@@ -53,6 +53,22 @@ public class FeedController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "게시글 좋아요 순 조회", description = "전체 공개 게시글을 좋아요 순으로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "특정 회원 구독자 전용 피드 조회 성공"),
+    })
+    @GetMapping("/feeds/popular")
+    public ResponseEntity<FeedResponse> getPopularFeed(
+            @RequestParam(required = false) Integer cursorLikeCount,
+            @RequestParam(required = false) Long cursorPostId,
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+    ) {
+        FeedResponse response =
+                feedService.getPopularFeed(cursorLikeCount, cursorPostId, size);
+
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "내 전체 공개 게시글 조회", description = "내가 등록한 전체 공개 게시글 피드를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "내 전체 공개 피드 조회 성공")

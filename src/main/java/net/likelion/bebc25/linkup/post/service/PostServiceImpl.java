@@ -35,8 +35,8 @@ public class PostServiceImpl implements PostService {
     private static final int MAX_IMAGE_COUNT = 5;
     private static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;
     private static final long MAX_FILE_SIZE = 100L *  1024 * 1024;
-    private static final String POST_IMAGE_DIRECTORY = "posts/images/";
-    private static final String POST_FILE_DIRECTORY = "posts/files/";
+    private static final String POST_IMAGE_DIRECTORY = "assets/postImages/";
+    private static final String POST_FILE_DIRECTORY = "assets/files/";
 
     private final PostMapper postMapper;
     private final PostImageMapper postImageMapper;

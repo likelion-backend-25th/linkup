@@ -65,6 +65,20 @@ public class FeedServiceImpl implements FeedService {
         return toFeedResponse(result, size);
     }
 
+    @Override
+    public FeedResponse getPopularFeed(Integer cursorLikeCount, Long cursorPostId, int size) {
+        if ((cursorLikeCount == null) != (cursorPostId == null)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "cursorLikeCount와 cursorPostId는 함께 전달해야 합니다."
+            );
+        }
+
+        List<PostCardResponse> result =
+                feedMapper.findPopularFeed(cursorLikeCount, cursorPostId, size + 1);
+        return toFeedResponse(result, size);
+    }
+
     private FeedResponse toFeedResponse(List<PostCardResponse> result, int size) {
         boolean hasNext = result.size() > size;
 
