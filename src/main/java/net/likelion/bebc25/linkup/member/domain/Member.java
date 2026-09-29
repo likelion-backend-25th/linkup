@@ -28,4 +28,7 @@ public class Member {
 
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
+
+    private int following_count;
+    private int follower_count;
 }
