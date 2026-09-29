@@ -22,4 +22,18 @@ public interface FeedMapper {
             @Param("cursor") Long cursor,
             @Param("limit") int limit
     );
+
+    // 내 전체 공개 게시글 피드 조회
+    List<PostCardResponse> findFeedByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
+
+    // 내 구독자 전용 게시글 피드 조회
+    List<PostCardResponse> findSubscriberOnlyFeedByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
 }
