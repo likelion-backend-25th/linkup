@@ -45,6 +45,19 @@
         VALUES ( #{creatorId}, #{memberId}, #{customerUid}, #{price}, #{status} )
     </insert>
 
+    <update id="updateCancel">
+        UPDATE subscription
+        SET end_date = next_billing_at,
+        status = "CANCELED",
+        next_billing_at = NULL
+        WHERE id = #{subscriptionId}
+    </update>
+
+    <delete id="deleteExpirations">
+        DELETE FROM subscription
+        WHERE end_date &lt; NOW();
+    </delete>
+
     <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
