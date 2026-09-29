@@ -266,10 +266,10 @@ CREATE TABLE subscription (
     member_id BIGINT NOT NULL,
     customer_uid VARCHAR(100) NULL,
     price INT NOT NULL,
-    start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    end_date DATETIME NULL,
+    start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_date DATETIME NULL DEFAULT NULL,
     status VARCHAR(20) NOT NULL,
-    next_billing_at DATETIME NOT NULL,
+    next_billing_at DATETIME NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL 30 DAY) ,
 
     CONSTRAINT fk_subscription_creator
         FOREIGN KEY (creator_id)

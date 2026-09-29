@@ -1,9 +1,8 @@
 package net.likelion.bebc25.linkup.subscription.service;
 
-import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
-import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
+import net.likelion.bebc25.linkup.subscription.domain.Subscription;
+import net.likelion.bebc25.linkup.subscription.dto.*;
+import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SubscriptionServiceTest {
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private SubscriptionMapper subscriptionMapper;
 
     @Test
     @DisplayName("사용자의 구독 리스트 조회 테스트")
@@ -68,6 +70,27 @@ public class SubscriptionServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.subscriptionId()).isEqualTo(targetId);
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("구독 등록 테스트")
+    void createSubsciptionTest() {
+        Long creatorId = 5L;
+        Long memberId = 10L;
+        String customerUid = "test_uid";
+        int price = 4900;
+
+        CreateSubscriptionResponse response = subscriptionService.createSubscription(
+                memberId, new CreateSubscriptionRequest(creatorId, customerUid, price)
+        );
+        assertThat(response).isNotNull();
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(response.subscriptionId());
+        assertThat(result.getCreatorId()).isEqualTo(creatorId);
+        assertThat(result.getMemberId()).isEqualTo(memberId);
+        assertThat(result.getCustomerUid()).isEqualTo(customerUid);
+        assertThat(result.getPrice()).isEqualTo(price);
         System.out.println(result);
     }
 }

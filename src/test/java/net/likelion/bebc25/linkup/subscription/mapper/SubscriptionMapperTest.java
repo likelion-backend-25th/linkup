@@ -1,9 +1,9 @@
-package net.likelion.bebc25.linkup.mapper;
+package net.likelion.bebc25.linkup.subscription.mapper;
 
+import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse;
-import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SubscriptionMapperTest {
     @Autowired
     private SubscriptionMapper subscriptionMapper;
+
+    @Test
+    @DisplayName("구독 등록 테스트")
+    void saveTest() {
+        Long creatorId = 5L;
+        Long memberId = 10L;
+        String customerUid = "test_uid";
+        int price = 4900;
+
+        Subscription sub = Subscription.builder()
+                .creatorId(creatorId)
+                .memberId(memberId)
+                .customerUid(customerUid)
+                .price(price)
+                .build();
+
+        int resultValue = subscriptionMapper.save(sub);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(sub.getSubscriptionId());
+        assertThat(result).isNotNull();
+        assertThat(result.getCreatorId()).isEqualTo(creatorId);
+        assertThat(result.getMemberId()).isEqualTo(memberId);
+        assertThat(result.getCustomerUid()).isEqualTo(customerUid);
+        assertThat(result.getPrice()).isEqualTo(price);
+        System.out.println(result);
+    }
 
     @Test
     @DisplayName("구독 상품 전체 조회 테스트")
@@ -61,11 +88,23 @@ public class SubscriptionMapperTest {
     }
 
     @Test
-    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    @DisplayName("특정 id 구독 내역 조회 테스트")
     void findBySubscriptionIdTest() {
         Long targetId = 1L;
 
-        SubscriptionDetailResponse result = subscriptionMapper.findBySubscriptionId(targetId);
+        Subscription result = subscriptionMapper.findBySubscriptionId(targetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getSubscriptionId()).isEqualTo(targetId);
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    void findSubscriptionDetailTest() {
+        Long targetId = 1L;
+
+        SubscriptionDetailResponse result = subscriptionMapper.findSubscriptionDetail(targetId);
 
         assertThat(result).isNotNull();
         assertThat(result.subscriptionId()).isEqualTo(targetId);

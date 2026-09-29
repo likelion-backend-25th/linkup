@@ -288,7 +288,7 @@ erDiagram
 | created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 북마크 등록 일시 |
 - 고유 제약조건: UNIQUE KEY `uk_member_follow` (`member_id`, `target_id`)
 
-### 2.11 subscription (구독)
+### 2.11 **subscription (구독)**
 
 | **컬럼명** | **데이터 타입** | **제약 조건** | **설명** |
 | --- | --- | --- | --- |
@@ -298,9 +298,9 @@ erDiagram
 | customer_uid | VARCHAR(100) | NULL | 정기 결제 카드 빌링키 |
 | price | INT | NOT NULL | 매월 정기 결제 금액 |
 | start_date | DATETIME | DEFAULT CURRENT_TIMESTAMP | 구독 시작일 |
-| end_date | DATETIME | NULL DATETIME | 구독 만료일 |
+| end_date | DATETIME | NULL | 구독 만료일 |
 | status | VARCHAR(20) | NOT NULL | 구독 상태 (ACTIVE, CANCELLED) |
-| next_billing_at | DATETIME | NOT NULL | 다음 자동 결제 예정일 |
+| next_billing_at | DATETIME | NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL 30 DAY) | 다음 자동 결제 예정일 |
 
 ### **2.12 payment (결제 이력)**
 
@@ -569,10 +569,10 @@ CREATE TABLE subscription (
                             member_id BIGINT NOT NULL,
                             customer_uid VARCHAR(100) NULL,
                             price INT NOT NULL,
-                            start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                             end_date DATETIME NULL,
                             status VARCHAR(20) NOT NULL,
-                            next_billing_at DATETIME NOT NULL,
+                            next_billing_at DATETIME NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL 30 DAY),
 
                             CONSTRAINT fk_subscription_creator
                               FOREIGN KEY (creator_id)

@@ -1,11 +1,8 @@
 package net.likelion.bebc25.linkup.subscription.service;
 
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.post.dto.FeedResponse;
-import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
-import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
+import net.likelion.bebc25.linkup.subscription.domain.Subscription;
+import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +11,23 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class SubscriptionServiceImpl implements SubscriptionService{
     private final SubscriptionMapper subscriptionMapper;
+
+    @Override
+    public CreateSubscriptionResponse createSubscription(
+            Long memberId, CreateSubscriptionRequest createSubscriptionRequest
+    ) {
+        Subscription subscription = Subscription.builder()
+                .memberId(memberId)
+                .creatorId(createSubscriptionRequest.creatorId())
+                .customerUid(createSubscriptionRequest.customerUid())
+                .price(createSubscriptionRequest.price())
+                .build();
+        subscriptionMapper.save(subscription);
+        return CreateSubscriptionResponse.from(subscription);
+    }
 
     @Override
     public PagingSubListResponse getSubscribeCreatorList(
@@ -31,7 +42,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     // 로그인 붙으면 확인절차 로직 만들것
     @Override
     public SubscriptionDetailResponse getSubscriptionDetail(Long subscriptionId) {
-        return subscriptionMapper.findBySubscriptionId(subscriptionId);
+        return subscriptionMapper.findSubscriptionDetail(subscriptionId);
     }
 
     private PagingSubListResponse toPagingSubListResponse(

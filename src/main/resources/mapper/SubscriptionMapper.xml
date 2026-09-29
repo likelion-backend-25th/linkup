@@ -40,6 +40,11 @@
         s.status AS status
     </sql>
 
+    <insert id="save" parameterType="Subscription" useGeneratedKeys="true" keyProperty="subscriptionId">
+        INSERT INTO subscription ( creator_id, member_id, customer_uid, price, status )
+        VALUES ( #{creatorId}, #{memberId}, #{customerUid}, #{price}, #{status} )
+    </insert>
+
     <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
@@ -49,15 +54,23 @@
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
         WHERE creator_id = #{creatorId}
+        ORDER BY id DESC
     </select>
 
     <select id="findByMemberId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
         SELECT <include refid="subscriptionColumns" />
         FROM subscription
         WHERE member_id = #{memberId}
+        ORDER BY id DESC
     </select>
 
-    <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse">
+    <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">
+        SELECT <include refid="subscriptionColumns" />
+        FROM subscription as s
+        WHERE s.id = #{subscriptionId}
+    </select>
+
+    <select id="findSubscriptionDetail" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse">
         SELECT <include refid="subscriptionDetailColumns" />
         FROM subscription as s
         JOIN member m ON m.id = s.creator_id
