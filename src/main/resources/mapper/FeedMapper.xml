@@ -19,16 +19,23 @@
         p.updated_at        AS updated_at
     </sql>
 
-    <!-- 내가 팔로잉한 회원들 피드 조회 -->
+    <!-- 내가 팔로잉한 회원들의 일반 게시글 + 내가 작성한 게시글 조회 -->
     <select id="findFollowingFeed" resultType="PostCardResponse">
         SELECT <include refid="feedColumns" />
         FROM post p
-        JOIN follow f ON f.target_id = p.member_id
-        JOIN member m ON m.id = p.member_id
-        JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
-        <where>
+        LEFT JOIN follow f
+            ON f.target_id = p.member_id
             AND f.member_id = #{memberId}
-            AND p.subscriber_only = FALSE
+        JOIN member m ON m.id = p.member_id
+        JOIN post_image pi
+            ON pi.post_id = p.id
+            AND pi.image_order = 1
+        <where>
+            AND (
+                (f.member_id IS NOT NULL AND p.subscriber_only = FALSE)
+                OR p.member_id = #{memberId}
+            )
+
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
@@ -104,6 +111,25 @@
             </if>
         </where>
         ORDER BY p.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 전체 공개 게시글 좋아요 순 피드 조회 -->
+    <select id="findPopularFeed" resultType="PostCardResponse">
+        SELECT <include refid="feedColumns" />
+        FROM post p
+        JOIN member m ON m.id = p.member_id
+        JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
+        <where>
+            AND p.subscriber_only = FALSE
+            <if test="cursorLikeCount != null and cursorPostId != null">
+                AND (
+                p.like_count &lt; #{cursorLikeCount}
+                OR (p.like_count = #{cursorLikeCount} AND p.id &lt; #{cursorPostId})
+                )
+            </if>
+        </where>
+        ORDER BY p.like_count DESC, p.id DESC
         LIMIT #{limit}
     </select>
 </mapper>
