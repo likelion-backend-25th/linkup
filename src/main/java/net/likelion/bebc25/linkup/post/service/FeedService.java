@@ -8,4 +8,16 @@ public interface FeedService {
 
     // 내가 구독한 크리에이터 게시글 조회
     FeedResponse getSubscriptionFeed(Long memberId, Long cursor, int size);
+
+    // 내 전체 공개 게시글 조회
+    FeedResponse getMyFeed(Long memberId, Long cursor, int size);
+
+    // 내 구독자 전용 게시글 조회
+    FeedResponse getMySubscriberOnlyFeed(Long memberId, Long cursor, int size);
+
+    // 특정 회원의 게시글 조회
+    FeedResponse getTargetFeed(Long targetId, Long cursor, int size);
+
+    // 특정 회원의 구독자 전용 게시글 조회
+    FeedResponse getTargetSubscriberOnlyFeed(Long memberId, Long targetId, Long cursor, int size);
 }
