@@ -7,10 +7,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
+import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.service.SubscriptionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -23,6 +22,25 @@ import java.util.List;
 @RequestMapping("/api/v1/subscriptions")
 public class SubscriptionController {
     private final SubscriptionService subscriptionService;
+
+    @Operation(
+            summary = "구독 등록",
+            description = "사용자의 Auth정보와 Body 정보를 기반으로 구독을 등록한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "구독 리스트 조회 성공")
+    })
+    @PostMapping
+    public ResponseEntity<CreateSubscriptionResponse> createSubscription(
+            @Parameter(description = "로그인 회원 ID", example = "1")
+            @RequestHeader("X-Member-Id") Long memberId,
+            @Parameter(description = "구독 등록 요청 정보")
+            @RequestBody CreateSubscriptionRequest createSubscriptionRequest
+    ) {
+        CreateSubscriptionResponse response
+                = subscriptionService.createSubscription(memberId, createSubscriptionRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @Operation(
             summary = "사용자의 구독 리스트 조회",
