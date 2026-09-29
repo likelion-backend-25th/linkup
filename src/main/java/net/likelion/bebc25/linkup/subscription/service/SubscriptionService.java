@@ -8,6 +8,12 @@ import java.util.List;
 
 public interface SubscriptionService {
 
+    int cancelSubscription(
+            Long subscriptionId
+    );
+
+    int deleteExpiredSubscriptions();
+
     CreateSubscriptionResponse createSubscription(
             Long memberId, CreateSubscriptionRequest createSubscriptionRequest
     );

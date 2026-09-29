@@ -14,6 +14,10 @@ public interface SubscriptionMapper {
 
     int save(Subscription subscription);
 
+    int updateCancel(@Param("subscriptionId") Long subscriptionId);
+
+    int deleteExpirations();
+
     List<SubscriptionResponse> findAll();
 
     List<SubscriptionResponse> findByCreatorId(@Param("creatorId") Long creatorId);

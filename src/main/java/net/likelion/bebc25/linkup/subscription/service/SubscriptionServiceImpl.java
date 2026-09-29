@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,17 @@ import java.util.List;
 @Transactional
 public class SubscriptionServiceImpl implements SubscriptionService{
     private final SubscriptionMapper subscriptionMapper;
+
+    @Override
+    public int cancelSubscription(Long subscriptionId) {
+        return subscriptionMapper.updateCancel(subscriptionId);
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 60_000) // 1분 간격
+    public int deleteExpiredSubscriptions() {
+        return subscriptionMapper.deleteExpirations();
+    }
 
     @Override
     public CreateSubscriptionResponse createSubscription(
