@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.admin.mapper.AdminReportMapper">
+
+    <!-- 신고 목록 조회 -->
+    <select id="findReports" resultType="net.likelion.bebc25.linkup.admin.dto.AdminReportResponse">
+        SELECT
+        r.id,
+        r.target_type AS targetType,
+        reporter.name AS reporterName,
+        target_member.name AS targetUserName,
+
+        CASE
+            WHEN r.target_type = 'POST' THEN p.content
+            WHEN r.target_type = 'REPLY' THEN reply.content
+        END AS content,
+
+        r.reason,
+        r.created_at AS createdAt,
+        r.status
+
+        FROM report r
+
+        JOIN member reporter
+        ON reporter.id = r.member_id
+
+        LEFT JOIN post p
+        ON p.id = r.post_id
+
+        LEFT JOIN reply
+        ON reply.id = r.reply_id
+
+        LEFT JOIN member target_member
+        ON target_member.id =
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END
+
+        WHERE 1 = 1
+
+        <if test="targetType != null and targetType != ''">
+            AND r.target_type = #{targetType}
+        </if>
+
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+
+        ORDER BY r.created_at DESC
+
+        LIMIT #{size}
+        OFFSET #{offset}
+
+    </select>
+
+    <!-- 신고 상세 조회 -->
+    <select id="findReportDetail" resultType="net.likelion.bebc25.linkup.admin.dto.AdminReportDetailResponse">
+        SELECT
+            r.id,
+            r.target_type AS targetType,
+            r.post_id AS postId,
+            r.reply_id AS replyId,
+
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END AS targetMemberId,
+
+            reporter.name AS reporterName,
+            target_member.name AS targetUserName,
+
+            CASE
+                WHEN r.target_type = 'POST' THEN p.content
+                WHEN r.target_type = 'REPLY' THEN reply.content
+            END AS content,
+
+            r.reason,
+            r.content AS reportContent,
+            r.created_at AS createdAt,
+            r.status
+
+        FROM report r
+
+        JOIN member reporter
+            ON reporter.id = r.member_id
+
+        LEFT JOIN post p
+            ON p.id = r.post_id
+
+        LEFT JOIN reply
+            ON reply.id = r.reply_id
+
+        LEFT JOIN member target_member
+            ON target_member.id =
+            CASE
+                WHEN r.target_type = 'POST' THEN p.member_id
+                WHEN r.target_type = 'REPLY' THEN reply.member_id
+            END
+
+        WHERE r.id = #{reportId}
+
+    </select>
+
+    <!-- 신고 상태 변경 -->
+    <update id="updateReportStatus">
+        UPDATE report
+        SET
+            status = #{status},
+            updated_at = NOW()
+
+        WHERE id = #{reportId}
+            AND status = 'WAIT'
+    </update>
+
+    <!-- 게시글 숨김 -->
+    <update id="hidePost">
+        UPDATE post
+        SET
+            hidden = TRUE,
+            updated_at = NOW()
+
+        WHERE id = #{postId}
+            AND hidden = FALSE
+    </update>
+
+    <!-- 댓글 숨김 -->
+    <update id="hideReply">
+        UPDATE reply
+        SET
+            hidden = TRUE,
+            updated_at = NOW()
+
+        WHERE id = #{replyId}
+            AND hidden = FALSE
+    </update>
+
+    <!-- 대상 회원 경고 횟수 증가 -->
+    <update id="increaseWarningCount">
+        UPDATE member
+        SET
+            warning_count = warning_count + 1,
+            updated_at = NOW()
+
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 회원 경고 회수 조회 -->
+    <select id="findWarningCount" resultType="int">
+        SELECT warning_count
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 게시글 작성 제한 -->
+    <update id="restrictWriting">
+        UPDATE member
+        SET
+            writing_restricted_until = DATE_ADD(NOW(), INTERVAL 7 DAY),
+            updated_at = NOW()
+
+        WHERE id = #{memberId}
+    </update>
+
+    <!-- 작성 제한 시간 조회 -->
+    <select id="findWritingRestrictedUntil" resultType="java.time.LocalDateTime">
+        SELECT writing_restricted_until
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 회원 정지 -->
+    <update id="suspendMember">
+        UPDATE member
+        SET
+            status = 'SUSPENDED',
+            updated_at = NOW()
+
+        WHERE id = #{memberId}
+    </update>
+
+    <select id="findMemberStatus" resultType="string">
+        SELECT status
+        FROM member
+        WHERE id = #{memberId}
+    </select>
+
+    <!-- 게시글 숨김 여부 -->
+    <select id="findPostHidden" resultType="boolean">
+        SELECT hidden
+        FROM post
+        WHERE id = #{postId}
+    </select>
+
+
+    <!-- 대기 중인 신고 수 -->
+    <select id="countPendingReports" resultType="int">
+        SELECT COUNT(*)
+        FROM report
+        WHERE status = 'WAIT'
+    </select>
+
+    <!-- 전체 회원 수 -->
+    <select id="countTotalMembers" resultType="int">
+        SELECT COUNT(*)
+        FROM report
+    </select>
+</mapper>

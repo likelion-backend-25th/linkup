@@ -24,6 +24,7 @@ CREATE TABLE member (
     profile_image VARCHAR(255) NULL,
     introduction TEXT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     warning_count INT NOT NULL DEFAULT 0,
     writing_restricted_until DATETIME NULL,
     following_count INT NOT NULL DEFAULT 0,
@@ -44,6 +45,7 @@ CREATE TABLE post (
     file_url VARCHAR(255) NULL,
     like_count INT NOT NULL DEFAULT 0,
     subscriber_only BOOLEAN NOT NULL DEFAULT FALSE,
+    hidden BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       ON UPDATE CURRENT_TIMESTAMP,
@@ -104,6 +106,7 @@ CREATE TABLE reply (
     member_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     like_count INT NOT NULL DEFAULT 0,
+    hidden BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
        ON UPDATE CURRENT_TIMESTAMP,
@@ -179,6 +182,7 @@ CREATE TABLE report (
     reply_id BIGINT NULL,
     target_type VARCHAR(20) NOT NULL,
     reason TEXT NOT NULL,
+    content TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'WAIT',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
@@ -307,3 +311,10 @@ CREATE TABLE payment (
             REFERENCES subscription(id)
             ON DELETE CASCADE
 );
+
+
+# # JSESSIONID 필수 테스트용 코드
+UPDATE member
+SET role = 'ROLE_ADMIN',
+    updated_at = NOW()
+WHERE id = 51;

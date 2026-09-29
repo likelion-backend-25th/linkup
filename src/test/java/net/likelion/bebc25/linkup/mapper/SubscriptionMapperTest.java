@@ -1,5 +1,7 @@
 package net.likelion.bebc25.linkup.mapper;
 
+import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
+import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -42,5 +44,56 @@ public class SubscriptionMapperTest {
             assertThat(sub.creatorId()).isEqualTo(targetCreatorId);
             System.out.println(sub.toString());
         }
+    }
+
+    @Test
+    @DisplayName("특정 사용자가 구독하고 있는 상품 조회 테스트")
+    void findByMemberIdTest() {
+        Long targetMemberId = 1L;
+
+        List<SubscriptionResponse> subList = subscriptionMapper.findByMemberId(targetMemberId);
+
+        assertThat(subList).isNotNull();
+        for (SubscriptionResponse sub : subList) {
+            assertThat(sub.memberId()).isEqualTo(targetMemberId);
+            System.out.println(sub.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    void findBySubscriptionIdTest() {
+        Long targetId = 1L;
+
+        SubscriptionDetailResponse result = subscriptionMapper.findBySubscriptionId(targetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.subscriptionId()).isEqualTo(targetId);
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("특정 사용자가 구독하고 있는 크리에이터 목록 테스트")
+    void findSubscribeCreatorListTest() {
+        Long targetMemberId = 1L;
+
+        List<SubscribeCreatorListResponse> subList
+                = subscriptionMapper.findSubscribeCreatorList(targetMemberId, null, 3);
+
+        assertThat(subList).isNotNull();
+        for (SubscribeCreatorListResponse sub : subList) {
+            assertThat(sub.memberId()).isEqualTo(targetMemberId);
+            System.out.println(sub.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    void countSubscribeCreatorTest() {
+        Long targetId = 1L;
+
+        int result = subscriptionMapper.countSubscribeCreator(targetId);
+
+        assertThat(result).isEqualTo(28);
     }
 }

@@ -13,4 +13,13 @@ public interface PostImageMapper {
 
     // 해당 게시글 이미지 전체 조회
     List<PostImage> findAllByPostId(@Param("postId") Long postId);
+
+    // 이미지 순서 수정
+    void updateImageOrder(
+            @Param("imageId") Long imageId,
+            @Param("imageOrder") int imageOrder
+    );
+
+    // 이미지 URL 삭제
+    void deleteById(Long imageId);
 }

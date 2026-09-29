@@ -2,6 +2,7 @@ package net.likelion.bebc25.linkup.post.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record PostCreateRequest(
@@ -14,6 +15,7 @@ public record PostCreateRequest(
         String content,
 
         @Schema(description = "구독자 전용 게시글 여부")
+        @NotNull
         boolean subscriberOnly
 ) {
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
@@ -44,5 +45,19 @@ public class S3FileStorageService implements FileStorageService {
         } catch (IOException e) {
             throw new IllegalStateException("S3 파일 업로드에 실패했습니다.", e);
         }
+    }
+
+    @Override
+    public void delete(String storedFileReference) {
+        if (storedFileReference == null || storedFileReference.isBlank()) {
+            throw new IllegalArgumentException("삭제할 파일 key가 필요합니다.");
+        }
+
+        DeleteObjectRequest request = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(storedFileReference)
+                .build();
+
+        s3Client.deleteObject(request);
     }
 }

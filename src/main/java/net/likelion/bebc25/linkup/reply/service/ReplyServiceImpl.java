@@ -1,0 +1,134 @@
+package net.likelion.bebc25.linkup.reply.service;
+
+import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.post.domain.Post;
+import net.likelion.bebc25.linkup.post.dto.FeedResponse;
+import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
+import net.likelion.bebc25.linkup.post.mapper.PostMapper;
+import net.likelion.bebc25.linkup.reply.domain.Reply;
+import net.likelion.bebc25.linkup.reply.dto.ReplyCreateRequest;
+import net.likelion.bebc25.linkup.reply.dto.ReplyPageResponse;
+import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
+import net.likelion.bebc25.linkup.reply.dto.ReplyUpdateRequest;
+import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
+import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ReplyServiceImpl implements ReplyService {
+
+    private final ReplyMapper replyMapper;
+    private final PostMapper postMapper;
+    private final SubscriptionMapper subscriptionMapper;
+
+    @Override
+    public ReplyPageResponse getReplies(Long postId, Long memberId, Long cursor, int size) {
+        validatePostReadAccess(postId, memberId);
+        List<ReplyResponse> result =
+                replyMapper.getByPostId(postId, cursor, size + 1);
+        return toReplyResponse(result, size);
+    }
+
+    @Transactional
+    @Override
+    public Long createReply(Long postId, Long memberId, ReplyCreateRequest request) {
+        validatePostReadAccess(postId, memberId);
+        Reply reply = Reply.builder()
+                .postId(postId)
+                .memberId(memberId)
+                .content(request.content())
+                .build();
+
+        replyMapper.insert(reply);
+
+        return reply.getId();
+    }
+
+    @Transactional
+    @Override
+    public void deleteReply(Long postId, Long memberId, Long replyId) {
+        validateReplyDeletePermission(postId, memberId, replyId);
+        replyMapper.deleteById(replyId);
+    }
+
+    @Transactional
+    @Override
+    public void updateReply(Long postId, Long memberId, Long replyId, ReplyUpdateRequest request) {
+        validateReplyUpdatePermission(postId, memberId, replyId);
+        replyMapper.updateReplyById(replyId, request.content());
+    }
+
+    private ReplyPageResponse toReplyResponse(List<ReplyResponse> result, int size) {
+        boolean hasNext = result.size() > size;
+
+        List<ReplyResponse> replies = List.copyOf(
+                result.subList(0, Math.min(result.size(), size))
+        );
+
+        Long nextCursor = hasNext
+                ? replies.getLast().id()
+                : null;
+
+        return new ReplyPageResponse(replies, nextCursor, hasNext);
+    }
+
+    // 게시글 접근 권한 검사
+    private void validatePostReadAccess(Long postId, Long memberId) {
+        Post post = postMapper.findById(postId);
+
+        if (post == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."
+            );
+        }
+
+        Long AuthorId = post.getMemberId();
+
+        if (post.isSubscriberOnly()) {
+            // 구독 테이블에 존재하는 지 검증
+        }
+
+
+    }
+
+    // 댓글 수정 권한 검사
+    private void validateReplyUpdatePermission(Long postId, Long memberId, Long replyId) {
+        Reply reply = replyMapper.getById(replyId);
+        if (reply == null || !reply.getPostId().equals(postId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."
+            );
+        }
+
+        if (!reply.getMemberId().equals(memberId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "댓글 작성자가 아닙니다."
+            );
+        }
+    }
+
+    // 댓글 삭제 권한 검사
+    private void validateReplyDeletePermission(Long postId, Long memberId, Long replyId) {
+        Reply reply = replyMapper.getById(replyId);
+        if (reply == null || !reply.getPostId().equals(postId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."
+            );
+        }
+        Post post = postMapper.findById(postId);
+        if (post.getMemberId().equals(memberId) || reply.getMemberId().equals(memberId)) {
+           return;
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "댓글을 삭제할 권한이 없습니다."
+            );
+        }
+    }
+}

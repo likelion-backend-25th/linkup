@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.search.mapper.SearchMapper">
+
+    <!-- =========================================================
+         사용자 검색
+         무한 스크롤 방식
+         ========================================================= -->
+    <select id="searchMembers"
+            resultType="net.likelion.bebc25.linkup.search.dto.MemberSearchResponse">
+
+        SELECT
+        m.id AS id,
+        m.name AS name,
+        m.unique_id AS uniqueId,
+        m.profile_image AS profileImage
+
+        FROM member m
+
+        WHERE
+        (
+        m.name LIKE CONCAT('%', #{keyword}, '%')
+        OR
+        m.unique_id LIKE CONCAT('%', #{keyword}, '%')
+        )
+
+        <!-- 로그인 상태라면 차단 관계 사용자 제외 -->
+        <if test="memberId != null">
+
+            AND NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (
+            b.member_id = #{memberId}
+            AND b.blocked_id = m.id
+            )
+            OR
+            (
+            b.member_id = m.id
+            AND b.blocked_id = #{memberId}
+            )
+            )
+
+        </if>
+
+        <!-- 사용자 검색 필터 -->
+
+        <!-- 팔로우 사용자 -->
+        <if test="filter != null and filter.name() == 'FOLLOWING'">
+
+            AND EXISTS (
+            SELECT 1
+            FROM follow f
+            WHERE f.member_id = #{memberId}
+            AND f.target_id = m.id
+            )
+
+        </if>
+
+        <!-- 구독 사용자 -->
+        <if test="filter != null and filter.name() == 'SUBSCRIBING'">
+
+            AND EXISTS (
+            SELECT 1
+            FROM subscription s
+            WHERE s.member_id = #{memberId}
+            AND s.creator_id = m.id
+            AND s.status = 'ACTIVE'
+            )
+
+        </if>
+
+        <!-- =====================================================
+             커서 기반 무한 스크롤
+             첫 요청: cursorId = null
+             다음 요청: 마지막으로 조회한 회원 ID 전달
+             ===================================================== -->
+        <if test="cursorId != null">
+            AND m.id &lt; #{cursorId}
+        </if>
+
+        ORDER BY m.id DESC
+
+        LIMIT #{size}
+
+    </select>
+
+</mapper>
