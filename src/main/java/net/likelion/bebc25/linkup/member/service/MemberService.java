@@ -3,6 +3,7 @@ package net.likelion.bebc25.linkup.member.service;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.dto.MemberDto;
+import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
 import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,5 +36,18 @@ public class MemberService {
                 member.getFollower_count(),
                 member.getFollowing_count()
         );
+    }
+
+    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
+        Member member = memberMapper.findById(memberId);
+
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
+
+        member.setName(request.getName());
+        member.setIntroduction(request.getIntroduction());
+
+        memberMapper.updateProfile(member);
     }
 }

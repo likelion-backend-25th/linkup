@@ -77,4 +77,14 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <!-- 프로필 수정 -->
+    <update id="updateProfile">
+        UPDATE member
+        SET
+        name = #{name},
+        introduction = #{introduction},
+        updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>
