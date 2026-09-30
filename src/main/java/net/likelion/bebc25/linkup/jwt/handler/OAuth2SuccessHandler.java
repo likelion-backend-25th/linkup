@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.likelion.bebc25.linkup.jwt.service.TokenService;
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,9 @@ import java.util.Map;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final TokenService tokenService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(
@@ -36,24 +40,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         Map<String, String> tokens =
                 tokenService.createAccessToken(member);
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String responseBody = String.format(
-                """
-                {
-                    "message": "로그인에 성공했습니다.",
-                    "accessToken": "%s",
-                    "refreshToken": "%s"
-                }
-                """,
+        
+        String redirectUrl = String.format(
+                "%s/oauth/callback#accessToken=%s&refreshToken=%s",
+                frontendUrl,
                 tokens.get("accessToken"),
                 tokens.get("refreshToken")
         );
 
-        response.getWriter().write(responseBody);
-
         log.info("OAuth2 로그인 성공 - memberId: {}", member.getId());
+
+        response.sendRedirect(redirectUrl);
     }
 }

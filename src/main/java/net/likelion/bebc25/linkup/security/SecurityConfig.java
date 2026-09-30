@@ -1,12 +1,16 @@
 package net.likelion.bebc25.linkup.security;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.jwt.filter.TokenAuthenticationFilter;
+import net.likelion.bebc25.linkup.jwt.filter.TokenExceptionFilter;
 import net.likelion.bebc25.linkup.jwt.handler.OAuth2SuccessHandler;
 import net.likelion.bebc25.linkup.member.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
 @Configuration
@@ -14,6 +18,9 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
+
+    private final TokenAuthenticationFilter tokenAuthenticationFilter;
+    private final TokenExceptionFilter tokenExceptionFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,7 +33,6 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        // 로그인 관련
                         .requestMatchers(
                                 "/",
                                 "/login/**",
@@ -34,10 +40,15 @@ public class SecurityConfig {
                                 "/api/auth/**"
                         ).permitAll()
 
-                        // 관리자
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/feeds/popular"
+                        ).permitAll()
 
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
+                        .anyRequest().authenticated()
                 )
 
                 .oauth2Login(oauth -> oauth
@@ -53,6 +64,18 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
+                )
+
+                // JWT 인증 필터
+                .addFilterBefore(
+                        tokenAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                // JWT 예외 처리 필터
+                .addFilterBefore(
+                        tokenExceptionFilter,
+                        TokenAuthenticationFilter.class
                 );
 
         return http.build();
