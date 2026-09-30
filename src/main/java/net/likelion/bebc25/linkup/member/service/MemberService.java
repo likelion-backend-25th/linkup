@@ -2,7 +2,9 @@ package net.likelion.bebc25.linkup.member.service;
 
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
+import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberDto;
 import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
@@ -11,12 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class MemberService {
 
     private final MemberMapper memberMapper;
     private final FileStorageService fileStorageService;
+    private final BlockMapper blockMapper;
 
     @Transactional(readOnly = true)
     public MemberDto getMyInfo(Long memberId) {
@@ -71,5 +76,27 @@ public class MemberService {
         }
 
         return profile;
+    }
+
+    public void blockMember(Long memberId, Long blockedId) {
+
+        if (memberId.equals(blockedId)) {
+            throw new IllegalArgumentException("자기 자신은 차단할 수 없습니다.");
+        }
+
+        if (blockMapper.existsBlock(memberId, blockedId) > 0) {
+            throw new IllegalArgumentException("이미 차단한 회원입니다.");
+        }
+
+        blockMapper.saveBlock(memberId, blockedId);
+    }
+
+    public void unblockMember(Long memberId, Long blockedId) {
+
+        blockMapper.deleteBlock(memberId, blockedId);
+    }
+
+    public List<BlockedMemberResponseDto> getBlockedMembers(Long memberId) {
+        return blockMapper.findBlockedMembers(memberId);
     }
 }

@@ -1,6 +1,7 @@
 package net.likelion.bebc25.linkup.member.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberDto;
 import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -42,6 +45,35 @@ public class MemberController {
     ) {
         return ResponseEntity.ok(
                 memberService.getMemberProfile(memberId)
+        );
+    }
+
+    @PostMapping("/{memberId}/block")
+    public ResponseEntity<Void> blockMember(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long memberId
+    ) {
+        memberService.blockMember(userDetails.getId(), memberId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{memberId}/block")
+    public ResponseEntity<Void> unblockMember(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long memberId
+    ) {
+        memberService.unblockMember(userDetails.getId(), memberId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/blocks")
+    public ResponseEntity<List<BlockedMemberResponseDto>> getBlockedMembers(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                memberService.getBlockedMembers(userDetails.getId())
         );
     }
 }
