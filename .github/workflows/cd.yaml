@@ -82,7 +82,6 @@ jobs:
             AWS_REGION: ${{ secrets.AWS_REGION }}
             JWT_SECRET: ${{ secrets.JWT_SECRET }}
             FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-            KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
             EOF
 
             echo ">>> 2. 최신 Docker 이미지 다운로드"

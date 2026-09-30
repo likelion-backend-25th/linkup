@@ -139,7 +139,7 @@ public class SubscriptionMapperTest {
     }
 
     @Test
-    @DisplayName("특정 사용자가 구독하고 있는 크리에이터 목록 테스트")
+    @DisplayName("findSubscribeCreatorListTest 테스트")
     void findSubscribeCreatorListTest() {
         Long targetMemberId = 1L;
 
@@ -154,7 +154,7 @@ public class SubscriptionMapperTest {
     }
 
     @Test
-    @DisplayName("특정 구독 상세 내역 조회 테스트")
+    @DisplayName("countSubscribeCreatorTest 테스트")
     void countSubscribeCreatorTest() {
         Long targetId = 1L;
 
