@@ -68,4 +68,42 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <select id="findFollowers" resultType="net.likelion.bebc25.linkup.follow.dto.FollowMemberResponse">
+        SELECT
+            f.id AS follow_id,
+            m.id AS member_id,
+            m.name,
+            m.unique_id,
+            m.profile_image
+        FROM follow f
+        JOIN member m ON m.id = f.member_id
+        <where>
+            AND f.target_id = #{memberId}
+            <if test="cursor != null">
+                AND f.id &lt; #{cursor}
+            </if>
+        </where>
+        ORDER BY f.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findFollowings" resultType="net.likelion.bebc25.linkup.follow.dto.FollowMemberResponse">
+        SELECT
+            f.id AS follow_id,
+            m.id AS member_id,
+            m.name,
+            m.unique_id,
+            m.profile_image
+        FROM follow f
+        JOIN member m ON m.id = f.target_id
+        <where>
+            AND f.member_id = #{memberId}
+            <if test="cursor != null">
+                AND f.id &lt; #{cursor}
+            </if>
+        </where>
+        ORDER BY f.id DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

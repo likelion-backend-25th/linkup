@@ -10,6 +10,7 @@ public record ReplyResponse (
     String profileImage,
     String content,
     int likeCount,
+    boolean likedByMe,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ){

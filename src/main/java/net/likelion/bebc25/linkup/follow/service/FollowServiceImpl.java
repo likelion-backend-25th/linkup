@@ -1,10 +1,14 @@
 package net.likelion.bebc25.linkup.follow.service;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.follow.dto.FollowMemberPageResponse;
+import net.likelion.bebc25.linkup.follow.dto.FollowMemberResponse;
 import net.likelion.bebc25.linkup.follow.dto.FollowResponse;
 import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +95,33 @@ public class FollowServiceImpl implements FollowService {
                 memberId,
                 followingCount
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FollowMemberPageResponse getFollowers(Long memberId, Long cursor, int size) {
+        List<FollowMemberResponse> result =
+                followMapper.findFollowers(memberId, cursor, size + 1);
+
+        return toPageResponse(result, size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FollowMemberPageResponse getFollowings(Long memberId, Long cursor, int size) {
+        List<FollowMemberResponse> result =
+                followMapper.findFollowings(memberId, cursor, size + 1);
+
+        return toPageResponse(result, size);
+    }
+
+    private FollowMemberPageResponse toPageResponse(List<FollowMemberResponse> result, int size) {
+        boolean hasNext = result.size() > size;
+        List<FollowMemberResponse> content = List.copyOf(
+                result.subList(0, Math.min(result.size(), size))
+        );
+        Long nextCursor = hasNext ? content.getLast().getFollowId() : null;
+
+        return new FollowMemberPageResponse(content, nextCursor, hasNext);
     }
 }

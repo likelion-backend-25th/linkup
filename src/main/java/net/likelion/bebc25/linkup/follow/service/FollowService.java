@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.follow.service;
 
+import net.likelion.bebc25.linkup.follow.dto.FollowMemberPageResponse;
 import net.likelion.bebc25.linkup.follow.dto.FollowResponse;
 
 public interface FollowService {
@@ -24,4 +25,8 @@ public interface FollowService {
             Long memberId,
             Long targetId
     );
+
+    FollowMemberPageResponse getFollowers(Long memberId, Long cursor, int size);
+
+    FollowMemberPageResponse getFollowings(Long memberId, Long cursor, int size);
 }

@@ -28,7 +28,7 @@ public class ReplyController {
             @RequestParam(defaultValue = "10") @Min(1) @Max(20) int size,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L; //userDetails.getId();
+        Long memberId = userDetails.getId();
         ReplyPageResponse response =
                 replyService.getReplies(postId, memberId, cursor, size);
 
@@ -41,7 +41,7 @@ public class ReplyController {
             @RequestBody @Valid ReplyCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L; //userDetails.getId();
+        Long memberId = userDetails.getId();
         Long replyId = replyService.createReply(postId, memberId, request);
 
         return ResponseEntity.ok(replyId);

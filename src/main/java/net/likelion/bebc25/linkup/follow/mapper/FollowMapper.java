@@ -1,7 +1,10 @@
 package net.likelion.bebc25.linkup.follow.mapper;
 
+import net.likelion.bebc25.linkup.follow.dto.FollowMemberResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface FollowMapper {
@@ -53,5 +56,20 @@ public interface FollowMapper {
     int countFollowings(
             @Param("memberId") Long memberId
     );
+
+    // 팔로워 목록 조회
+
+    List<FollowMemberResponse> findFollowers(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
+
+    List<FollowMemberResponse> findFollowings(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
+
 }
 

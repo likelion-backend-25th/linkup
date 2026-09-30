@@ -65,10 +65,13 @@ public class FeedController {
     public ResponseEntity<FeedResponse> getPopularFeed(
             @RequestParam(required = false) Integer cursorLikeCount,
             @RequestParam(required = false) Long cursorPostId,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        Long memberId = userDetails == null ? null : userDetails.getId();
+
         FeedResponse response =
-                feedService.getPopularFeed(cursorLikeCount, cursorPostId, size);
+                feedService.getPopularFeed(memberId, cursorLikeCount, cursorPostId, size);
 
         return ResponseEntity.ok(response);
     }
@@ -117,10 +120,13 @@ public class FeedController {
     public ResponseEntity<FeedResponse> getTargetFeed(
             @PathVariable Long targetId,
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        Long memberId = userDetails == null ? null : userDetails.getId();
+
         FeedResponse response =
-                feedService.getTargetFeed(targetId, cursor, size);
+                feedService.getTargetFeed(memberId, targetId, cursor, size);
 
         return ResponseEntity.ok(response);
     }
