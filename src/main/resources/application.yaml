@@ -99,3 +99,6 @@ cloud:
     region: ap-northeast-2
     s3:
       bucket: linkup-user-content
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}

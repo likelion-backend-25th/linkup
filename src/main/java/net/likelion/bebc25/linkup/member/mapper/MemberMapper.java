@@ -16,4 +16,6 @@ public interface MemberMapper {
     int save(Member member);
 
     int countPosts(Long memberId);
+
+    void updateProfile(Member member);
 }
