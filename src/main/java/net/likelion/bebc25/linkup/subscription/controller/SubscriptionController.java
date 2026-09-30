@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.service.SubscriptionService;
 import org.springframework.http.HttpStatus;
@@ -32,13 +33,13 @@ public class SubscriptionController {
     })
     @PostMapping
     public ResponseEntity<CreateSubscriptionResponse> createSubscription(
-            @Parameter(description = "로그인 회원 ID", example = "1")
-            @RequestHeader("X-Member-Id") Long memberId,
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "구독 등록 요청 정보")
             @RequestBody CreateSubscriptionRequest createSubscriptionRequest
     ) {
         CreateSubscriptionResponse response
-                = subscriptionService.createSubscription(memberId, createSubscriptionRequest);
+                = subscriptionService.createSubscription(userDetails.getId(), createSubscriptionRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -51,15 +52,15 @@ public class SubscriptionController {
     })
     @GetMapping
     public ResponseEntity<PagingSubListResponse> getSubscribeCreatorList(
-            @Parameter(description = "로그인 회원 ID", example = "1")
-            @RequestHeader("X-Member-Id") Long memberId,
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "다음 페이징 커서 값", example = "1")
             @RequestParam(required = false) Long cursor,
             @Parameter(description = "페이지 사이즈", example = "10")
             @RequestParam(defaultValue = "9") @Min(3) @Max(20) int size
     ) {
         PagingSubListResponse responses
-                = subscriptionService.getSubscribeCreatorList(memberId, cursor, size);
+                = subscriptionService.getSubscribeCreatorList(userDetails.getId(), cursor, size);
         return ResponseEntity.ok(responses);
     }
 
@@ -73,9 +74,8 @@ public class SubscriptionController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<SubscriptionDetailResponse> getSubscriptionDetail(
-            // 로그인 되야함을 명시, 값은 쓰지 않음
-            @Parameter(description = "로그인 회원 ID", example = "1")
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId,
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "구독 내역 ID", example = "1")
             @PathVariable("id") Long subscriptionId
     ) {
@@ -92,9 +92,8 @@ public class SubscriptionController {
     })
     @PostMapping("/{id}")
     public ResponseEntity<Void> cancelSubscription(
-            // 로그인 되야함을 명시, 값은 쓰지 않음
-            @Parameter(description = "로그인 회원 ID", example = "1")
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId,
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "구독 내역 ID", example = "1")
             @PathVariable("id") Long subscriptionId
     ) {
