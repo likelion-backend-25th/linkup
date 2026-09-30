@@ -1,18 +1,21 @@
 package net.likelion.bebc25.linkup.member.service;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.dto.MemberDto;
 import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
 import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Service
 public class MemberService {
 
     private final MemberMapper memberMapper;
+    private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
     public MemberDto getMyInfo(Long memberId) {
@@ -38,7 +41,8 @@ public class MemberService {
         );
     }
 
-    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
+    @Transactional
+    public void updateMyProfile(Long memberId, MemberUpdateRequest request, MultipartFile profileImage) {
         Member member = memberMapper.findById(memberId);
 
         if (member == null) {
@@ -47,6 +51,11 @@ public class MemberService {
 
         member.setName(request.getName());
         member.setIntroduction(request.getIntroduction());
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String imageUrl = fileStorageService.upload(profileImage, "uploads/profiles/");
+            member.setProfileImage(imageUrl);
+        }
 
         memberMapper.updateProfile(member);
     }
