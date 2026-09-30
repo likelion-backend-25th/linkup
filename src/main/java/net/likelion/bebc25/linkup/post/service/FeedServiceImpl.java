@@ -8,7 +8,6 @@ import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -57,11 +56,11 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponse getTargetSubscriberOnlyFeed(Long memberId, Long targetId, Long cursor, int size) {
-        if (postMapper.existsValidSubscription(memberId, targetId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "구독하지 않은 회원입니다.");
-        }
+        validateSubscriberOnlyFeedAccess(memberId, targetId);
+
         List<PostCardResponse> result =
                 feedMapper.findSubscriberOnlyFeedByMemberId(targetId, cursor, size + 1);
+
         return toFeedResponse(result, size);
     }
 
@@ -79,6 +78,7 @@ public class FeedServiceImpl implements FeedService {
         return toFeedResponse(result, size);
     }
 
+    // limit보다 한 개 더 조회한 결과로 다음 페이지 존재 여부를 판단한다.
     private FeedResponse toFeedResponse(List<PostCardResponse> result, int size) {
         boolean hasNext = result.size() > size;
 
@@ -91,5 +91,19 @@ public class FeedServiceImpl implements FeedService {
                 : null;
 
         return new FeedResponse(posts, nextCursor, hasNext);
+    }
+
+    // 구독자 전용 피드는 작성자 본인 또는 유효한 구독자만 조회할 수 있다.
+    private void validateSubscriberOnlyFeedAccess(Long memberId, Long targetId) {
+        if (memberId.equals(targetId)) {
+            return;
+        }
+
+        if (!postMapper.existsValidSubscription(memberId, targetId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "구독하지 않은 회원입니다."
+            );
+        }
     }
 }

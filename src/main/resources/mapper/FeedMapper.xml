@@ -63,7 +63,7 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 내 전체 공개 게시글 조회 -->
+    <!-- 특정 회원의 공개 게시글 피드 조회 -->
     <select id="findFeedByMemberId" resultType="PostCardResponse">
         SELECT <include refid="feedColumns" />
         FROM post p
@@ -80,7 +80,7 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 내 구독자 전용 게시글 조회 -->
+    <!-- 특정 회원의 구독자 전용 게시글 피드 조회 -->
     <select id="findSubscriberOnlyFeedByMemberId" resultType="PostCardResponse">
         SELECT <include refid="feedColumns" />
         FROM post p
@@ -89,23 +89,6 @@
         <where>
             AND p.member_id = #{memberId}
             AND p.subscriber_only = TRUE
-            <if test="cursor != null">
-                AND p.id &lt; #{cursor}
-            </if>
-        </where>
-        ORDER BY p.id DESC
-        LIMIT #{limit}
-    </select>
-
-    <!-- 내 특정 회원 전체 공개 게시글 조회 -->
-    <select id="findFeedByTargetId" resultType="PostCardResponse">
-        SELECT <include refid="feedColumns" />
-        FROM post p
-        JOIN member m ON m.id = p.member_id
-        JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
-        <where>
-            AND p.member_id = #{memberId}
-            AND p.subscriber_only = FALSE
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
