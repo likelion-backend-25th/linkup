@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -71,7 +72,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Member existingMember = memberMapper.findByEmail(email);
         if (existingMember == null) {
 
-            String uniqueId = email.substring(0, email.indexOf("@"));
+            String emailId = email.substring(0, email.indexOf("@"));
+
+            String random = UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 5);
+
+            String uniqueId = emailId + "__" + random;
             // 최초 로그인인 경우 자동 회원가입 진행
             Member newMember = Member.builder()
                     .email(email)
