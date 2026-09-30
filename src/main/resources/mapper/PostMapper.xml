@@ -60,7 +60,7 @@
     <!-- 게시글 좋아요 카운트 감소 -->
     <update id="decrementLikeCount">
         UPDATE post
-        SET like_count = like_count - 1
+        SET like_count = GREATEST(like_count - 1, 0)
         WHERE id = #{postId}
     </update>
 

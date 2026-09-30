@@ -14,4 +14,6 @@ public interface MemberMapper {
 
     // 신규 회원 등록 (소셜 로그인 자동 회원가입)
     int save(Member member);
+
+    int countPosts(Long memberId);
 }

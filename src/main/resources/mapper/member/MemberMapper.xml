@@ -70,4 +70,11 @@
 
     </insert>
 
+    <!-- 작성한 게시글 수 조회 -->
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE member_id = #{memberId}
+    </select>
+
 </mapper>

@@ -20,9 +20,14 @@ public record PostDetailResponse (
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         boolean likedByMe,
+        boolean followingAuthor,
         List<PostImageResponse> images
 ) {
-    public static PostDetailResponse from(PostDetailRow postDetailRow, List<PostImage> images, boolean likedByMe) {
+    public static PostDetailResponse from(PostDetailRow postDetailRow,
+                                          List<PostImage> images,
+                                          boolean likedByMe,
+                                          boolean followingAuthor
+    ) {
         List<PostImageResponse> imageResponses = images.stream()
                 .map(PostImageResponse::from)
                 .toList();
@@ -40,6 +45,7 @@ public record PostDetailResponse (
                 postDetailRow.getCreatedAt(),
                 postDetailRow.getUpdatedAt(),
                 likedByMe,
+                followingAuthor,
                 imageResponses
         );
     }

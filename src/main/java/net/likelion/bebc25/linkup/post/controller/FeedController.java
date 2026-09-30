@@ -7,9 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
 import net.likelion.bebc25.linkup.post.dto.FeedResponse;
 import net.likelion.bebc25.linkup.post.service.FeedService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -26,9 +28,10 @@ public class FeedController {
     @GetMapping("/feeds/following")
     public ResponseEntity<FeedResponse> getFollowingFeed(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         FeedResponse response =
                 feedService.getFollowingFeed(memberId, cursor, size);
@@ -43,12 +46,29 @@ public class FeedController {
     @GetMapping("/feeds/subscription")
     public ResponseEntity<FeedResponse> getSubscriptionFeed(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         FeedResponse response =
                 feedService.getSubscriptionFeed(memberId, cursor, size);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "게시글 좋아요 순 조회", description = "전체 공개 게시글을 좋아요 순으로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "특정 회원 구독자 전용 피드 조회 성공"),
+    })
+    @GetMapping("/feeds/popular")
+    public ResponseEntity<FeedResponse> getPopularFeed(
+            @RequestParam(required = false) Integer cursorLikeCount,
+            @RequestParam(required = false) Long cursorPostId,
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+    ) {
+        FeedResponse response =
+                feedService.getPopularFeed(cursorLikeCount, cursorPostId, size);
 
         return ResponseEntity.ok(response);
     }
@@ -60,9 +80,10 @@ public class FeedController {
     @GetMapping("/members/me/feeds")
     public ResponseEntity<FeedResponse> getMyFeed(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         FeedResponse response =
                 feedService.getMyFeed(memberId, cursor, size);
@@ -77,9 +98,10 @@ public class FeedController {
     @GetMapping("/members/me/feeds/subscriber-only")
     public ResponseEntity<FeedResponse> getMySubscriberOnlyFeed(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         FeedResponse response =
                 feedService.getMySubscriberOnlyFeed(memberId, cursor, size);
@@ -97,8 +119,6 @@ public class FeedController {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
     ) {
-        Long memberId = 1L;
-
         FeedResponse response =
                 feedService.getTargetFeed(targetId, cursor, size);
 
@@ -114,9 +134,10 @@ public class FeedController {
     public ResponseEntity<FeedResponse> getTargetSubscriberOnlyFeed(
             @PathVariable Long targetId,
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size
+            @RequestParam(defaultValue = "10") @Min(3) @Max(20) int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         FeedResponse response =
                 feedService.getTargetSubscriberOnlyFeed(memberId, targetId, cursor, size);

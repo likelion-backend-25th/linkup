@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.subscription.mapper;
 
+import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse;
 import net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse;
@@ -11,13 +12,21 @@ import java.util.List;
 @Mapper
 public interface SubscriptionMapper {
 
+    int save(Subscription subscription);
+
+    int updateCancel(@Param("subscriptionId") Long subscriptionId);
+
+    int deleteExpirations();
+
     List<SubscriptionResponse> findAll();
 
     List<SubscriptionResponse> findByCreatorId(@Param("creatorId") Long creatorId);
 
     List<SubscriptionResponse> findByMemberId(@Param("memberId") Long memberId);
 
-    SubscriptionDetailResponse findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
+    Subscription findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
+
+    SubscriptionDetailResponse findSubscriptionDetail(@Param("subscriptionId") Long subscriptionId);
 
     List<SubscribeCreatorListResponse> findSubscribeCreatorList(
             @Param("memberId") Long memberId,

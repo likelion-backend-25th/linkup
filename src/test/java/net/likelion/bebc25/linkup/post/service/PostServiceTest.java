@@ -129,8 +129,11 @@ class PostServiceTest {
         assertThatThrownBy(() ->
                 postService.createPost(memberId, request, images, file)
         )
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("구독자 전용 게시글에만 첨부 파일을 업로드할 수 있습니다.");
+                .isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
+                    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    assertThat(exception.getReason())
+                            .isEqualTo("첨부파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
+                });
     }
 
     @Test
@@ -150,8 +153,11 @@ class PostServiceTest {
         assertThatThrownBy(() ->
                 postService.createPost(memberId, request, images, file)
         )
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("크리에이터만 첨부 파일을 업로드할 수 있습니다.");
+                .isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
+                    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+                    assertThat(exception.getReason())
+                            .isEqualTo("크리에이터만 첨부파일을 업로드할 수 있습니다.");
+                });
     }
 
     @Test
