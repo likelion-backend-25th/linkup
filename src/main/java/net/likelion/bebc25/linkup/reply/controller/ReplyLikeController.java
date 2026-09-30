@@ -19,7 +19,7 @@ public class ReplyLikeController {
             @PathVariable long replyId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
         replyLikeService.likeReply(postId, replyId, memberId);
 
         return ResponseEntity.noContent().build();
@@ -31,7 +31,7 @@ public class ReplyLikeController {
             @PathVariable long replyId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
         replyLikeService.unlikeReply(postId, replyId, memberId);
 
         return ResponseEntity.noContent().build();

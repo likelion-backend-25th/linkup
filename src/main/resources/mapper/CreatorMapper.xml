@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.creator.mapper.CreatorMapper">
+    <sql id="subscriberColumns">
+        s.id AS subscription_id,
+        s.creator_id AS creator_id,
+        s.member_id AS member_id,
+        m.name AS member_name,
+        m.unique_id AS member_unique_id,
+        m.profile_image AS profile_image,
+        s.start_date AS start_date,
+        s.end_date AS end_date,
+        s.next_billing_at AS next_billing_at
+    </sql>
+
+    <select id="findSubscriberList" resultType="net.likelion.bebc25.linkup.creator.dto.SubscriberResponse">
+        SELECT <include refid="subscriberColumns" />
+        FROM subscription as s
+        JOIN member m ON m.id = s.member_id
+        <where>
+            AND s.creator_id = #{creatorId}
+            <if test="cursor != null">
+                AND s.id &lt; #{cursor}
+            </if>
+        </where>
+        ORDER BY s.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countSubscriber" resultType="int">
+        SELECT COUNT(*) AS count
+        FROM subscription
+        WHERE creator_id = #{creatorId}
+    </select>
+
+</mapper>

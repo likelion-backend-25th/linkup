@@ -34,7 +34,7 @@ spring:
               - profile_nickname
               - profile_image
               - account_email
-            redirect-uri: ${KAKAO_REDIRECT_URI}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: Kakao
 
           google:

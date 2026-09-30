@@ -8,6 +8,7 @@ import net.likelion.bebc25.linkup.reply.dto.ReplyCreateRequest;
 import net.likelion.bebc25.linkup.reply.dto.ReplyPageResponse;
 import net.likelion.bebc25.linkup.reply.dto.ReplyResponse;
 import net.likelion.bebc25.linkup.reply.dto.ReplyUpdateRequest;
+import net.likelion.bebc25.linkup.reply.mapper.ReplyLikeMapper;
 import net.likelion.bebc25.linkup.reply.mapper.ReplyMapper;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.List;
 public class ReplyServiceImpl implements ReplyService {
 
     private final ReplyMapper replyMapper;
+    private final ReplyLikeMapper replyLikeMapper;
     private final PostMapper postMapper;
     private final SubscriptionMapper subscriptionMapper;
 
@@ -30,7 +32,10 @@ public class ReplyServiceImpl implements ReplyService {
     public ReplyPageResponse getReplies(Long postId, Long memberId, Long cursor, int size) {
         validatePostReadAccess(postId, memberId);
         List<ReplyResponse> result =
-                replyMapper.getByPostId(postId, cursor, size + 1);
+                replyMapper.getByPostId(postId, cursor, size + 1)
+                        .stream()
+                        .map(reply -> withLikedByMe(reply, memberId))
+                        .toList();
         return toReplyResponse(result, size);
     }
 
@@ -71,6 +76,23 @@ public class ReplyServiceImpl implements ReplyService {
                 : null;
 
         return new ReplyPageResponse(replies, nextCursor, hasNext);
+    }
+
+    private ReplyResponse withLikedByMe(ReplyResponse reply, Long memberId) {
+        boolean likedByMe = replyLikeMapper.existsByReplyIdAndMemberId(reply.id(), memberId);
+
+        return new ReplyResponse(
+                reply.id(),
+                reply.memberId(),
+                reply.name(),
+                reply.uniqueId(),
+                reply.profileImage(),
+                reply.content(),
+                reply.likeCount(),
+                likedByMe,
+                reply.createdAt(),
+                reply.updatedAt()
+        );
     }
 
     // 게시글이 존재하는지 확인하고 조회한다.
