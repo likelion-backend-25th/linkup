@@ -13,7 +13,12 @@
         p.content           AS content,
         pi.image_url        AS main_image_url,
         p.like_count        AS like_count,
-        0                   AS comment_count,
+        (
+            SELECT COUNT(*)
+            FROM reply r
+            WHERE r.post_id = p.id
+        )                   AS comment_count,
+        FALSE               AS liked_by_me,
         p.subscriber_only   AS subscriber_only,
         p.created_at        AS created_at,
         p.updated_at        AS updated_at

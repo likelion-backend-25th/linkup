@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.post.dto.FeedResponse;
 import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
 import net.likelion.bebc25.linkup.post.mapper.FeedMapper;
+import net.likelion.bebc25.linkup.post.mapper.PostLikeMapper;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,39 +19,40 @@ import java.util.List;
 public class FeedServiceImpl implements FeedService {
     private final FeedMapper feedMapper;
     private final PostMapper postMapper;
+    private final PostLikeMapper postLikeMapper;
 
     @Override
     public FeedResponse getFollowingFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                feedMapper.findFollowingFeed(memberId, cursor, size + 1);
+                withLikedByMe(feedMapper.findFollowingFeed(memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
     public FeedResponse getSubscriptionFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                feedMapper.findSubscriptionFeed(memberId, cursor, size + 1);
+                withLikedByMe(feedMapper.findSubscriptionFeed(memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
     public FeedResponse getMyFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                feedMapper.findFeedByMemberId(memberId, cursor, size + 1);
+                withLikedByMe(feedMapper.findFeedByMemberId(memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
     public FeedResponse getMySubscriberOnlyFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                feedMapper.findSubscriberOnlyFeedByMemberId(memberId, cursor, size + 1);
+                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
-    public FeedResponse getTargetFeed(Long targetId, Long cursor, int size) {
+    public FeedResponse getTargetFeed(Long memberId, Long targetId, Long cursor, int size) {
         List<PostCardResponse> result =
-                feedMapper.findFeedByMemberId(targetId, cursor, size + 1);
+                withLikedByMe(feedMapper.findFeedByMemberId(targetId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
@@ -59,13 +61,13 @@ public class FeedServiceImpl implements FeedService {
         validateSubscriberOnlyFeedAccess(memberId, targetId);
 
         List<PostCardResponse> result =
-                feedMapper.findSubscriberOnlyFeedByMemberId(targetId, cursor, size + 1);
+                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(targetId, cursor, size + 1), memberId);
 
         return toFeedResponse(result, size);
     }
 
     @Override
-    public FeedResponse getPopularFeed(Integer cursorLikeCount, Long cursorPostId, int size) {
+    public FeedResponse getPopularFeed(Long memberId, Integer cursorLikeCount, Long cursorPostId, int size) {
         if ((cursorLikeCount == null) != (cursorPostId == null)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -74,7 +76,7 @@ public class FeedServiceImpl implements FeedService {
         }
 
         List<PostCardResponse> result =
-                feedMapper.findPopularFeed(cursorLikeCount, cursorPostId, size + 1);
+                withLikedByMe(feedMapper.findPopularFeed(cursorLikeCount, cursorPostId, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
@@ -91,6 +93,35 @@ public class FeedServiceImpl implements FeedService {
                 : null;
 
         return new FeedResponse(posts, nextCursor, hasNext);
+    }
+
+    private List<PostCardResponse> withLikedByMe(List<PostCardResponse> posts, Long memberId) {
+        if (memberId == null) {
+            return posts;
+        }
+
+        return posts.stream()
+                .map(post -> withLikedByMe(post, memberId))
+                .toList();
+    }
+
+    private PostCardResponse withLikedByMe(PostCardResponse post, Long memberId) {
+        boolean likedByMe = postLikeMapper.existsByPostIdAndMemberId(post.postId(), memberId);
+
+        return new PostCardResponse(
+                post.postId(),
+                post.memberId(),
+                post.memberName(),
+                post.uniqueId(),
+                post.profileImageUrl(),
+                post.content(),
+                post.mainImageUrl(),
+                post.likeCount(),
+                post.commentCount(),
+                likedByMe,
+                post.subscriberOnly(),
+                post.createdAt()
+        );
     }
 
     // 구독자 전용 피드는 작성자 본인 또는 유효한 구독자만 조회할 수 있다.

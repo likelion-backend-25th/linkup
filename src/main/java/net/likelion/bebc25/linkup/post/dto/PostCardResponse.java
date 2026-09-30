@@ -12,6 +12,7 @@ public record PostCardResponse(
         String mainImageUrl,
         int likeCount,
         int commentCount,
+        boolean likedByMe,
         boolean subscriberOnly,
         LocalDateTime createdAt
 ) {

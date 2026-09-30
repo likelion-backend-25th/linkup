@@ -14,6 +14,7 @@
         m.profile_image,
         r.content,
         r.like_count,
+        FALSE AS liked_by_me,
         r.created_at,
         r.updated_at
         FROM reply r
