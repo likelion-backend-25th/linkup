@@ -1,6 +1,7 @@
 package net.likelion.bebc25.linkup.member.mapper;
 
 import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,4 +19,6 @@ public interface MemberMapper {
     int countPosts(Long memberId);
 
     void updateProfile(Member member);
+
+    MemberResponseDto findProfileById(@Param("memberId") Long id);
 }

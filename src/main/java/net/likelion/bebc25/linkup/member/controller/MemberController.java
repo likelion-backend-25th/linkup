@@ -2,6 +2,7 @@ package net.likelion.bebc25.linkup.member.controller;
 
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.member.dto.MemberDto;
+import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
 import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
 import net.likelion.bebc25.linkup.member.service.MemberService;
@@ -33,5 +34,14 @@ public class MemberController {
         memberService.updateMyProfile(userDetails.getId(), request, profileImage);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{memberId}")
+    public ResponseEntity<MemberResponseDto> getMemberProfile(
+            @PathVariable Long memberId
+    ) {
+        return ResponseEntity.ok(
+                memberService.getMemberProfile(memberId)
+        );
     }
 }
