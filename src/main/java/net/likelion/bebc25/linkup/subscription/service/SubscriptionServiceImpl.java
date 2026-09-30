@@ -5,6 +5,7 @@ import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     private final SubscriptionMapper subscriptionMapper;
 
     @Override
+    @PreAuthorize("@SubscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
     public int cancelSubscription(Long subscriptionId) {
         return subscriptionMapper.updateCancel(subscriptionId);
     }
@@ -53,6 +55,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
 
     // 로그인 붙으면 확인절차 로직 만들것
     @Override
+    @PreAuthorize("@SubscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
     public SubscriptionDetailResponse getSubscriptionDetail(Long subscriptionId) {
         return subscriptionMapper.findSubscriptionDetail(subscriptionId);
     }
@@ -70,5 +73,11 @@ public class SubscriptionServiceImpl implements SubscriptionService{
                 : null;
 
         return new PagingSubListResponse(subCreatorlist, subCreatorCount, nextCursor, hasNext);
+    }
+
+    // 본인의 구독 정보가 맞는지 검증하는 헬퍼메소드
+    public boolean isAuthor(Long subscriptionId, Long memberId) {
+        Subscription sub = subscriptionMapper.findBySubscriptionId(subscriptionId);
+        return sub != null && sub.getMemberId().equals(memberId);
     }
 }
