@@ -54,7 +54,7 @@
         <where>
             AND s.member_id = #{memberId}
             AND s.status = 'ACTIVE'
-            AND s.end_date > CURRENT_TIMESTAMP
+<!--            AND s.end_date > CURRENT_TIMESTAMP-->
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
