@@ -19,7 +19,7 @@ public class PostLikeController {
             @PathVariable("postId") Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         postLikeService.likePost(postId, memberId);
 
@@ -32,7 +32,7 @@ public class PostLikeController {
             @PathVariable("postId") Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         postLikeService.unlikePost(postId, memberId);
 

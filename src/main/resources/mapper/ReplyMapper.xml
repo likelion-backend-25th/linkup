@@ -62,7 +62,7 @@
     <!-- 댓글 좋아요 카운트 감소 -->
     <update id="decrementLikeCount">
         UPDATE reply
-        SET like_count = like_count - 1
+        SET like_count = GREATEST(like_count - 1, 0)
         WHERE id = #{replyId}
     </update>
 </mapper>
