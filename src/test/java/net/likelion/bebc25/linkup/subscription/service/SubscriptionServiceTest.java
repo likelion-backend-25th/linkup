@@ -93,4 +93,28 @@ public class SubscriptionServiceTest {
         assertThat(result.getPrice()).isEqualTo(price);
         System.out.println(result);
     }
+
+    @Test
+    @DisplayName("구독 해지 테스트")
+    void cancelSubscriptionTest() {
+        Long subId = 1L;
+
+        int resultValue = subscriptionService.cancelSubscription(subId);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(subId);
+        assertThat(result.getStatus()).isEqualTo("CANCELED");
+        assertThat(result.getNextBillingAt()).isNull();
+        System.out.println(result);
+    }
+
+    // 이 테스트는 스케줄러랑 충돌이 나므로 왠만하면 하지 않는 걸 추천
+    // 하고 싶다면 SubscriptionService에 deleteExpiredSubscriptions 메소드의
+    // 스케줄러 어노테이션을 주석처리 할 것
+//    @Test
+//    @DisplayName("만료된 구독들 삭제 테스트")
+//    void deleteExpiredSubscriptionsTest() {
+//        int resultValue = subscriptionService.deleteExpiredSubscriptions();
+//        assertThat(resultValue).isEqualTo(10);
+//    }
 }

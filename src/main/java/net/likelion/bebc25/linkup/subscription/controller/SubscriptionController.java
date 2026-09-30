@@ -82,4 +82,25 @@ public class SubscriptionController {
         SubscriptionDetailResponse response = subscriptionService.getSubscriptionDetail(subscriptionId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(
+            summary = "구독 해지",
+            description = "구독 id 값을 사용하여 구독을 해지한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "구독 해지 성공")
+    })
+    @PostMapping("/{id}")
+    public ResponseEntity<Void> cancelSubscription(
+            // 로그인 되야함을 명시, 값은 쓰지 않음
+            @Parameter(description = "로그인 회원 ID", example = "1")
+            @RequestHeader(value = "X-Member-Id", required = false) Long memberId,
+            @Parameter(description = "구독 내역 ID", example = "1")
+            @PathVariable("id") Long subscriptionId
+    ) {
+        subscriptionService.cancelSubscription(subscriptionId);
+//        SubscriptionDetailResponse response = subscriptionService.getSubscriptionDetail(subscriptionId);
+//        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
+    }
 }
