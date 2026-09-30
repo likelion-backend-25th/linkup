@@ -1,6 +1,7 @@
 package net.likelion.bebc25.linkup.reply.service;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import net.likelion.bebc25.linkup.post.domain.Post;
 import net.likelion.bebc25.linkup.post.mapper.PostMapper;
 import net.likelion.bebc25.linkup.reply.domain.Reply;
@@ -27,12 +28,13 @@ public class ReplyServiceImpl implements ReplyService {
     private final ReplyLikeMapper replyLikeMapper;
     private final PostMapper postMapper;
     private final SubscriptionMapper subscriptionMapper;
+    private final BlockMapper blockMapper;
 
     @Override
     public ReplyPageResponse getReplies(Long postId, Long memberId, Long cursor, int size) {
         validatePostReadAccess(postId, memberId);
         List<ReplyResponse> result =
-                replyMapper.getByPostId(postId, cursor, size + 1)
+                replyMapper.getByPostId(postId, memberId, cursor, size + 1)
                         .stream()
                         .map(reply -> withLikedByMe(reply, memberId))
                         .toList();
@@ -112,12 +114,18 @@ public class ReplyServiceImpl implements ReplyService {
     // 구독자 전용 게시글은 작성자 또는 유효한 구독자만 댓글을 조회/작성할 수 있다.
     private void validatePostReadAccess(Long postId, Long memberId) {
         Post post = getPostOrThrow(postId);
+        Long authorId = post.getMemberId();
+
+        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "게시글이 존재하지 않습니다."
+            );
+        }
 
         if (!post.isSubscriberOnly()) {
             return;
         }
-
-        Long authorId = post.getMemberId();
 
         if (memberId.equals(authorId)) {
             return;

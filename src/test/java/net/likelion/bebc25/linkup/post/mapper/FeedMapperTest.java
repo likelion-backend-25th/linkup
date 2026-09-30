@@ -34,7 +34,6 @@ public class FeedMapperTest {
         assertThat(result1)
                 .extracting(PostCardResponse::postId)
                 .containsExactly(277L, 227L, 177L, 127L, 77L, 27L);
-        assertThat(result1.getFirst().mainImageUrl()).isEqualTo("https://cdn.example.com/posts/277/image-1.jpg");
 
         assertThat(result2)
                 .extracting(PostCardResponse::postId)

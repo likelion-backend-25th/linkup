@@ -38,21 +38,21 @@ public class FeedServiceImpl implements FeedService {
     @Override
     public FeedResponse getMyFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                withLikedByMe(feedMapper.findFeedByMemberId(memberId, cursor, size + 1), memberId);
+                withLikedByMe(feedMapper.findFeedByMemberId(memberId, memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
     public FeedResponse getMySubscriberOnlyFeed(Long memberId, Long cursor, int size) {
         List<PostCardResponse> result =
-                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(memberId, cursor, size + 1), memberId);
+                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(memberId, memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
     @Override
     public FeedResponse getTargetFeed(Long memberId, Long targetId, Long cursor, int size) {
         List<PostCardResponse> result =
-                withLikedByMe(feedMapper.findFeedByMemberId(targetId, cursor, size + 1), memberId);
+                withLikedByMe(feedMapper.findFeedByMemberId(targetId, memberId, cursor, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
@@ -61,7 +61,7 @@ public class FeedServiceImpl implements FeedService {
         validateSubscriberOnlyFeedAccess(memberId, targetId);
 
         List<PostCardResponse> result =
-                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(targetId, cursor, size + 1), memberId);
+                withLikedByMe(feedMapper.findSubscriberOnlyFeedByMemberId(targetId, memberId, cursor, size + 1), memberId);
 
         return toFeedResponse(result, size);
     }
@@ -76,7 +76,7 @@ public class FeedServiceImpl implements FeedService {
         }
 
         List<PostCardResponse> result =
-                withLikedByMe(feedMapper.findPopularFeed(cursorLikeCount, cursorPostId, size + 1), memberId);
+                withLikedByMe(feedMapper.findPopularFeed(memberId, cursorLikeCount, cursorPostId, size + 1), memberId);
         return toFeedResponse(result, size);
     }
 
