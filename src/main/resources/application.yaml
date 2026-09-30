@@ -1,6 +1,6 @@
 spring:
   profiles:
-    default: local
+    default: prod
   # .env 파일 자동 로드
   config:
     import: optional:file:.env[.properties]
