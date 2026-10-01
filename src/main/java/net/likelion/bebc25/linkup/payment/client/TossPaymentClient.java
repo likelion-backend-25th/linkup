@@ -3,6 +3,7 @@ package net.likelion.bebc25.linkup.payment.client;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.common.config.TossProperties;
 import net.likelion.bebc25.linkup.payment.dto.BillingKeyResponse;
+import net.likelion.bebc25.linkup.payment.dto.BillingPaymentResponse;
 import net.likelion.bebc25.linkup.payment.dto.TossApiError;
 import net.likelion.bebc25.linkup.payment.exception.TossApiException;
 import org.springframework.http.HttpHeaders;
@@ -54,35 +55,33 @@ public class TossPaymentClient {
         }
     }
 
-     // billingKey를 이용한 자동결제
-//    public BillingPaymentResponse charge(
-//            String billingKey,
-//            String customerKey,
-//            String orderId,
-//            String orderName,
-//            int amount
-//    ) {
-//
-//        try {
-//
-//            return tossRestClient
-//                    .post()
-//                    .uri("/v1/billing/{billingKey}", billingKey)
-//                    .header(HttpHeaders.AUTHORIZATION, authorization())
-//                    .contentType(MediaType.APPLICATION_JSON)
-//                    .body(Map.of("customerKey", customerKey,
-//                                    "orderId", orderId,
-//                                    "orderName", orderName,
-//                                    "amount", amount
-//                            )
-//                    )
-//                    .retrieve()
-//                    .body(BillingPaymentResponse.class);
-//
-//        } catch (RestClientResponseException e) {
-//            throw createTossApiException(e);
-//        }
-//    }
+    // billingKey를 이용한 자동결제
+    public BillingPaymentResponse charge(
+            String billingKey,
+            String customerKey,
+            String orderId,
+            String orderName,
+            int amount
+    ) {
+        try {
+            return tossRestClient
+                    .post()
+                    .uri("/v1/billing/{billingKey}", billingKey)
+                    .header(HttpHeaders.AUTHORIZATION, authorization())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("customerKey", customerKey,
+                                    "orderId", orderId,
+                                    "orderName", orderName,
+                                    "amount", amount
+                            )
+                    )
+                    .retrieve()
+                    .body(BillingPaymentResponse.class);
+
+        } catch (RestClientResponseException e) {
+            throw createTossApiException(e);
+        }
+    }
 
     // 빌링키 삭제
     public void deleteBillingKey(String billingKey) {

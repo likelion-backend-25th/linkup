@@ -14,6 +14,8 @@ public interface SubscriptionService {
 
     int deleteExpiredSubscriptions();
 
+    int autoPayment();
+
     CreateSubscriptionResponse createSubscription(
             Long memberId, CreateSubscriptionRequest createSubscriptionRequest
     );

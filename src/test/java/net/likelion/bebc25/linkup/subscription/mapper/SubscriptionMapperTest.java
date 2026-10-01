@@ -64,6 +64,18 @@ public class SubscriptionMapperTest {
         System.out.println(result);
     }
 
+    @Test
+    @DisplayName("updateNextBillingAt 테스트")
+    void updateNextBillingAtTest() {
+        Long subId = 1L;
+
+        int resultValue = subscriptionMapper.updateNextBillingAt(subId);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(subId);
+        System.out.println(result.getNextBillingAt());
+    }
+
     // 이 테스트는 스케줄러랑 충돌이 나므로 왠만하면 하지 않는 걸 추천
     // 하고 싶다면 SubscriptionService에 deleteExpiredSubscriptions 메소드의
     // 스케줄러 어노테이션을 주석처리 할 것
@@ -74,7 +86,8 @@ public class SubscriptionMapperTest {
 //        assertThat(resultValue).isEqualTo(10);
 //
 //        Subscription result = subscriptionMapper.findBySubscriptionId(25L);
-//        assertThat(result).isNull();
+//        System.out.println(result);
+//        assertThat(result.getStatus()).isEqualTo("REMOVED");
 //    }
 
     @Test
@@ -98,6 +111,16 @@ public class SubscriptionMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getSubscriptionId()).isEqualTo(targetId);
         System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("findAutoPaymentRenewalList 테스트")
+    void findAutoPaymentRenewalListTest() {
+        List<Subscription> list = subscriptionMapper.findAutoPaymentRenewalList();
+
+        for(Subscription sub: list) {
+            System.out.println(sub);
+        }
     }
 
     @Test
