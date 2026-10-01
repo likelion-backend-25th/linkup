@@ -60,7 +60,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/v1/feeds/popular"
+                                "/api/v1/feeds/popular",
+                                "/api/v1/posts/*",
+                                "/api/v1/posts/*/replies"
                         ).permitAll()
 
                         .requestMatchers("/api/v1/admin/**")

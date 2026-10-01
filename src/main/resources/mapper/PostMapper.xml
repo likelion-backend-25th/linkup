@@ -51,14 +51,16 @@
         FROM post p
         JOIN member m ON p.member_id = m.id
         WHERE p.id = #{postId}
-        AND NOT EXISTS (
-        SELECT 1
-        FROM block b
-        WHERE
-        (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
-        OR
-        (b.member_id = p.member_id AND b.blocked_id = #{memberId})
-        )
+        <if test="memberId != null">
+            AND NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{memberId})
+            )
+        </if>
     </select>
 
     <!-- 게시글 삭제 -->
@@ -96,7 +98,8 @@
         SELECT 1
         FROM subscription
         WHERE member_id = #{memberId} AND creator_id = #{creatorId}
-        AND status = 'ACTIVE' AND end_date > CURRENT_TIMESTAMP
+        AND status = 'ACTIVE'
+        AND (end_date IS NULL OR end_date > CURRENT_TIMESTAMP)
         )
     </select>
 </mapper>
