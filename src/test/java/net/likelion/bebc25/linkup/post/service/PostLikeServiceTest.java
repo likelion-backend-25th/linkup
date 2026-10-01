@@ -18,10 +18,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 @SpringBootTest
 @Transactional
 public class PostLikeServiceTest {
+
     @Autowired
     PostLikeService postLikeService;
+
     @Autowired
     PostMapper postMapper;
+
     @Autowired
     PostLikeMapper postLikeMapper;
 
@@ -33,7 +36,7 @@ public class PostLikeServiceTest {
 
         // when
         postLikeService.likePost(post.getId(), 2L);
-        Post resultPost = postMapper.findById(post.getId());
+        Post resultPost = postMapper.findById(post.getId(), 2L);
 
         // then
         assertThat(resultPost.getLikeCount()).isEqualTo(1);
@@ -53,7 +56,8 @@ public class PostLikeServiceTest {
                         AssertionsForClassTypes.assertThat(exception.getStatusCode())
                                 .isEqualTo(HttpStatus.FORBIDDEN)
                 );
-        Post resultPost = postMapper.findById(post.getId());
+
+        Post resultPost = postMapper.findById(post.getId(), 1L);
 
         // then
         assertThat(resultPost.getLikeCount()).isEqualTo(0);
@@ -67,7 +71,7 @@ public class PostLikeServiceTest {
 
         // when
         postLikeService.likePost(post.getId(), 2L);
-        Post resultPost = postMapper.findById(post.getId());
+        Post resultPost = postMapper.findById(post.getId(), 2L);
 
         // then
         assertThat(resultPost.getLikeCount()).isEqualTo(1);
@@ -83,7 +87,8 @@ public class PostLikeServiceTest {
         postLikeService.likePost(post.getId(), 2L);
         postLikeService.likePost(post.getId(), 3L);
         postLikeService.unlikePost(post.getId(), 2L);
-        Post resultPost = postMapper.findById(post.getId());
+
+        Post resultPost = postMapper.findById(post.getId(), 2L);
 
         // then
         assertThat(resultPost.getLikeCount()).isEqualTo(1);
@@ -96,6 +101,7 @@ public class PostLikeServiceTest {
                 .content(content)
                 .subscriberOnly(subscriberOnly)
                 .build();
+
         postMapper.insert(post);
 
         return post;
