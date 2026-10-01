@@ -10,6 +10,7 @@ import net.likelion.bebc25.linkup.member.dto.MemberDto;
 import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
 import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
 import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
+import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +25,7 @@ public class MemberService {
     private final FileStorageService fileStorageService;
     private final BlockMapper blockMapper;
     private final FollowMapper followMapper;
+    private final SubscriptionMapper subscriptionMapper;
 
     @Transactional(readOnly = true)
     public MemberDto getMyInfo(Long memberId) {
@@ -82,6 +84,10 @@ public class MemberService {
 
         if (profile == null) {
             throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
+
+        if (loginMemberId != null) {
+            profile.setSubscribedStatus(subscriptionMapper.findByMemberIdAndCreatorId(loginMemberId, targetMemberId));
         }
 
         return profile;

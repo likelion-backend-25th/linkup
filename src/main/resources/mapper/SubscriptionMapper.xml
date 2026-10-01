@@ -9,7 +9,8 @@
         id AS subscription_id,
         creator_id,
         member_id,
-        customer_uid,
+        customer_key,
+        billing_key,
         price,
         start_date,
         end_date,
@@ -41,8 +42,8 @@
     </sql>
 
     <insert id="save" parameterType="Subscription" useGeneratedKeys="true" keyProperty="subscriptionId">
-        INSERT INTO subscription ( creator_id, member_id, customer_uid, price, status )
-        VALUES ( #{creatorId}, #{memberId}, #{customerUid}, #{price}, #{status} )
+        INSERT INTO subscription ( creator_id, member_id, customer_key, billing_key, price, status )
+        VALUES ( #{creatorId}, #{memberId}, #{customerKey}, #{billingKey}, #{price}, #{status} )
     </insert>
 
     <update id="updateCancel">
@@ -75,6 +76,12 @@
         FROM subscription
         WHERE member_id = #{memberId}
         ORDER BY id DESC
+    </select>
+
+    <select id="findByMemberIdAndCreatorId" resultType="string">
+        SELECT status
+        FROM subscription
+        WHERE member_id = #{memberId} AND creator_id = #{creatorId}
     </select>
 
     <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">

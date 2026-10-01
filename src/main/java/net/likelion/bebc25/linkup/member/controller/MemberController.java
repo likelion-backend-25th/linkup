@@ -44,11 +44,12 @@ public class MemberController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long memberId
     ) {
+        Long loginId = null;
+        if (userDetails != null) {
+            loginId = userDetails.getId();
+        }
         return ResponseEntity.ok(
-                memberService.getMemberProfile(
-                        userDetails.getId(),
-                        memberId
-                )
+                memberService.getMemberProfile(loginId, memberId)
         );
     }
 

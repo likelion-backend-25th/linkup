@@ -21,17 +21,19 @@ public class SubscriptionMapperTest {
     private SubscriptionMapper subscriptionMapper;
 
     @Test
-    @DisplayName("구독 등록 테스트")
+    @DisplayName("save 테스트")
     void saveTest() {
         Long creatorId = 5L;
         Long memberId = 10L;
-        String customerUid = "test_uid";
+        String customerKey = "test_customer_key";
+        String billingKey = "test_billing_key";
         int price = 4900;
 
         Subscription sub = Subscription.builder()
                 .creatorId(creatorId)
                 .memberId(memberId)
-                .customerUid(customerUid)
+                .customerKey(customerKey)
+                .billingKey(billingKey)
                 .price(price)
                 .build();
 
@@ -42,7 +44,8 @@ public class SubscriptionMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getCreatorId()).isEqualTo(creatorId);
         assertThat(result.getMemberId()).isEqualTo(memberId);
-        assertThat(result.getCustomerUid()).isEqualTo(customerUid);
+        assertThat(result.getCustomerKey()).isEqualTo(customerKey);
+        assertThat(result.getBillingKey()).isEqualTo(billingKey);
         assertThat(result.getPrice()).isEqualTo(price);
         System.out.println(result);
     }
@@ -112,6 +115,17 @@ public class SubscriptionMapperTest {
             assertThat(sub.memberId()).isEqualTo(targetMemberId);
             System.out.println(sub.toString());
         }
+    }
+
+    @Test
+    @DisplayName("findByMemberIdAndCreatorId 테스트")
+    void findByMemberIdAndCreatorIdTest() {
+        Long creatorId = 5L;
+        Long memberId = 2L;
+
+        String status = subscriptionMapper.findByMemberIdAndCreatorId(memberId, creatorId);
+
+        assertThat(status).isEqualTo("ACTIVE");
     }
 
     @Test

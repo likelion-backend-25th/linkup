@@ -1,6 +1,8 @@
 package net.likelion.bebc25.linkup.subscription.service;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.payment.client.TossPaymentClient;
+import net.likelion.bebc25.linkup.payment.dto.BillingKeyResponse;
 import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
@@ -16,6 +18,7 @@ import java.util.List;
 @Transactional
 public class SubscriptionServiceImpl implements SubscriptionService{
     private final SubscriptionMapper subscriptionMapper;
+    private final TossPaymentClient tossPaymentClient;
 
     @Override
     @PreAuthorize("@SubscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
@@ -33,12 +36,18 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     public CreateSubscriptionResponse createSubscription(
             Long memberId, CreateSubscriptionRequest createSubscriptionRequest
     ) {
+        BillingKeyResponse response = tossPaymentClient.issueBillingKey(
+                createSubscriptionRequest.authKey(), createSubscriptionRequest.customerKey()
+        );
+
         Subscription subscription = Subscription.builder()
                 .memberId(memberId)
                 .creatorId(createSubscriptionRequest.creatorId())
-                .customerUid(createSubscriptionRequest.customerUid())
-                .price(createSubscriptionRequest.price())
+                .customerKey(createSubscriptionRequest.customerKey())
+                .billingKey(response.billingKey())
+                .price(4900)
                 .build();
+
         subscriptionMapper.save(subscription);
         return CreateSubscriptionResponse.from(subscription);
     }

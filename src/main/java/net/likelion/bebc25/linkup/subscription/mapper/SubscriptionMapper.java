@@ -24,6 +24,8 @@ public interface SubscriptionMapper {
 
     List<SubscriptionResponse> findByMemberId(@Param("memberId") Long memberId);
 
+    String findByMemberIdAndCreatorId(@Param("memberId") Long memberId, @Param("creatorId") Long creatorId) ;
+
     Subscription findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
 
     SubscriptionDetailResponse findSubscriptionDetail(@Param("subscriptionId") Long subscriptionId);
