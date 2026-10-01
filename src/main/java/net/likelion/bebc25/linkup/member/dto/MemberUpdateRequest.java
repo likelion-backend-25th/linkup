@@ -9,4 +9,5 @@ import lombok.Setter;
 public class MemberUpdateRequest {
     private String name;
     private String introduction;
+    private String uniqueId;
 }
