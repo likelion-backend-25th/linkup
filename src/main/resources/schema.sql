@@ -286,26 +286,29 @@ CREATE TABLE subscription (
 -- 12. payment (결제 이력)
 -- =========================================================
 CREATE TABLE payment (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id BIGINT NOT NULL,
-    subscription_id BIGINT NOT NULL,
-    imp_uid VARCHAR(100) NULL,
-    merchant_uid VARCHAR(100) NOT NULL UNIQUE,
-    amount INT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    pay_method VARCHAR(30) NOT NULL,
-    paid_at DATETIME NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+     member_id BIGINT NOT NULL,
+     subscription_id BIGINT NOT NULL,
+     payment_key VARCHAR(255) NOT NULL,
+     order_id VARCHAR(100) NOT NULL,
+     order_name VARCHAR(100) NOT NULL,
+     status VARCHAR(50) NOT NULL,
+     method VARCHAR(20) NOT NULL,
+     total_amount INT NOT NULL,
+     url VARCHAR(300) NOT NULL,
+     requested_at VARCHAR(100) NOT NULL,
+     approved_at VARCHAR(100) NULL,
 
-    CONSTRAINT fk_payment_member
-        FOREIGN KEY (member_id)
-            REFERENCES member(id)
-            ON DELETE CASCADE,
 
-    CONSTRAINT fk_payment_subscription
-        FOREIGN KEY (subscription_id)
-            REFERENCES subscription(id)
-            ON DELETE CASCADE
+     CONSTRAINT fk_payment_member
+         FOREIGN KEY (member_id)
+             REFERENCES member(id)
+             ON DELETE CASCADE,
+
+     CONSTRAINT fk_payment_subscription
+         FOREIGN KEY (subscription_id)
+             REFERENCES subscription(id)
+             ON DELETE CASCADE
 );
 
 
@@ -315,10 +318,7 @@ SET role = 'ROLE_ADMIN',
     updated_at = NOW()
 WHERE id = 51;
 
-# 관리자 페이지 테스트 권한 부여
-UPDATE member
-SET role = 'ROLE_ADMIN'
-WHERE email = 'soungyoung14@gmail.com';
+
 #
 # UPDATE member
 # SET role = 'ROLE_ADMIN'
