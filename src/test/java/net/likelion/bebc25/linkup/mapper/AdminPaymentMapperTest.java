@@ -124,7 +124,7 @@ class AdminPaymentMapperTest {
         // then
         assertThat(payments).isNotNull();
         for(AdminPaymentResponse payment : payments){
-            assertThat(payment.buyerNickname())
+            assertThat(payment.buyerId())
                     .contains("test");
         }
     }

@@ -25,11 +25,11 @@ public record AdminPaymentDetailResponse(
         // 결제 수단
         String paymentMethod,
 
-        // 결제 고유 거래 번호
-        String merchantUid,
+        // 주문 번호
+        String orderId,
 
-        // PG사 결제 번호
-        String impUid,
+        // 토스페이먼츠 결제 키
+        String paymentKey,
 
         // 판매자 닉네임
         String sellerNickname,
