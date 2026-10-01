@@ -57,11 +57,11 @@ public class AdminReportServiceImpl implements AdminReportService {
             return;
         }
 
-        // 콘텐츠 숨김 처리
+        // 콘텐츠 삭제 처리
         if("POST".equals(report.targetType())){
-            adminReportMapper.hidePost(report.postId());
+            adminReportMapper.deletePost(report.postId());
         } else if("REPLY".equals(report.targetType())){
-            adminReportMapper.hideReply(report.replyId());
+            adminReportMapper.deleteReply(report.replyId());
         }
 
         // 대상 회원 경고 증가
