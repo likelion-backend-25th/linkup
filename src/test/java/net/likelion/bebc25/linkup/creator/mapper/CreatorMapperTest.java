@@ -39,6 +39,6 @@ public class CreatorMapperTest {
 
         int result = creatorMapper.countSubscriber(creatorId);
 
-        assertThat(result).isEqualTo(4);
+        assertThat(result).isEqualTo(5);
     }
 }

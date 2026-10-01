@@ -54,29 +54,18 @@
         WHERE id = #{subscriptionId}
     </update>
 
-    <delete id="deleteExpirations">
-        DELETE FROM subscription
-        WHERE end_date &lt; NOW();
-    </delete>
+    <update id="updateNextBillingAt">
+        UPDATE subscription
+        SET next_billing_at = (CURRENT_TIMESTAMP + INTERVAL 30 DAY)
+        WHERE id = #{subscriptionId}
+    </update>
 
-    <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
-        FROM subscription
-    </select>
-
-    <select id="findByCreatorId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
-        FROM subscription
-        WHERE creator_id = #{creatorId}
-        ORDER BY id DESC
-    </select>
-
-    <select id="findByMemberId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
-        FROM subscription
-        WHERE member_id = #{memberId}
-        ORDER BY id DESC
-    </select>
+    <update id="deleteExpirations">
+        UPDATE subscription
+        SET status = "REMOVED",
+        next_billing_at = NULL
+        WHERE end_date &lt; NOW() AND status = "CANCELED";
+    </update>
 
     <select id="findByMemberIdAndCreatorId" resultType="string">
         SELECT status
@@ -88,6 +77,12 @@
         SELECT <include refid="subscriptionColumns" />
         FROM subscription as s
         WHERE s.id = #{subscriptionId}
+    </select>
+
+    <select id="findAutoPaymentRenewalList" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">
+        SELECT <include refid="subscriptionColumns" />
+        FROM subscription as s
+        WHERE next_billing_at &lt; NOW() AND billing_key != NULL
     </select>
 
     <select id="findSubscriptionDetail" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse">
@@ -103,6 +98,7 @@
         JOIN member m ON m.id = s.creator_id
         <where>
             AND s.member_id = #{memberId}
+            AND s.status != "REMOVED"
             <if test="cursor != null">
                 AND s.id &lt; #{cursor}
             </if>
@@ -114,7 +110,7 @@
     <select id="countSubscribeCreator" resultType="int">
         SELECT COUNT(*) AS count
         FROM subscription
-        WHERE member_id = #{memberId}
+        WHERE member_id = #{memberId} AND status != "REMOVED"
     </select>
 
 </mapper>

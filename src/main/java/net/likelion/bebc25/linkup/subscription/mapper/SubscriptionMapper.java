@@ -16,6 +16,8 @@ public interface SubscriptionMapper {
 
     int updateCancel(@Param("subscriptionId") Long subscriptionId);
 
+    int updateNextBillingAt(@Param("subscriptionId") Long subscriptionId);
+
     int deleteExpirations();
 
     String findByMemberIdAndCreatorId(@Param("memberId") Long memberId, @Param("creatorId") Long creatorId) ;
@@ -23,6 +25,8 @@ public interface SubscriptionMapper {
     Subscription findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
 
     SubscriptionDetailResponse findSubscriptionDetail(@Param("subscriptionId") Long subscriptionId);
+
+    List<Subscription> findAutoPaymentRenewalList();
 
     List<SubscribeCreatorListResponse> findSubscribeCreatorList(
             @Param("memberId") Long memberId,

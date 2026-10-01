@@ -2,7 +2,10 @@ package net.likelion.bebc25.linkup.subscription.service;
 
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.payment.client.TossPaymentClient;
+import net.likelion.bebc25.linkup.payment.domain.Payment;
 import net.likelion.bebc25.linkup.payment.dto.BillingKeyResponse;
+import net.likelion.bebc25.linkup.payment.dto.BillingPaymentResponse;
+import net.likelion.bebc25.linkup.payment.mapper.PaymentMapper;
 import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.mapper.SubscriptionMapper;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,10 +23,13 @@ import java.util.List;
 public class SubscriptionServiceImpl implements SubscriptionService{
     private final SubscriptionMapper subscriptionMapper;
     private final TossPaymentClient tossPaymentClient;
+    private final PaymentMapper paymentMapper;
 
     @Override
-    @PreAuthorize("@SubscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
+    @PreAuthorize("@subscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
     public int cancelSubscription(Long subscriptionId) {
+        Subscription subscription = subscriptionMapper.findBySubscriptionId(subscriptionId);
+        tossPaymentClient.deleteBillingKey(subscription.getBillingKey());
         return subscriptionMapper.updateCancel(subscriptionId);
     }
 
@@ -31,6 +38,48 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     public int deleteExpiredSubscriptions() {
         return subscriptionMapper.deleteExpirations();
     }
+
+    @Override
+    @Scheduled(fixedDelay = 60_000) // 1분 간격
+    public int autoPayment() {
+        List<Subscription> renewalList = subscriptionMapper.findAutoPaymentRenewalList();
+
+        if (renewalList != null) {
+            for (Subscription subscription: renewalList) {
+                String orderId = "Order_" + UUID.randomUUID()
+                        .toString()
+                        .replace("-", "")
+                        .substring(0, 20);
+
+                BillingPaymentResponse paymentResponse =  tossPaymentClient.charge(
+                        subscription.getBillingKey(),
+                        subscription.getCustomerKey(),
+                        orderId,
+                        "구독 1개월",
+                        subscription.getPrice()
+                );
+
+                Payment payment = Payment.builder()
+                        .memberId(subscription.getMemberId())
+                        .subscriptionId(subscription.getSubscriptionId())
+                        .paymentKey(paymentResponse.paymentKey())
+                        .orderId(paymentResponse.orderId())
+                        .orderName(paymentResponse.orderName())
+                        .status(paymentResponse.status())
+                        .method(paymentResponse.method())
+                        .totalAmount(paymentResponse.totalAmount())
+                        .requestedAt(paymentResponse.requestedAt())
+                        .approvedAt(paymentResponse.approvedAt())
+                        .build();
+
+                paymentMapper.save(payment);
+
+                subscriptionMapper.updateNextBillingAt(subscription.getSubscriptionId());
+            }
+        }
+        return 0;
+    }
+
 
     @Override
     public CreateSubscriptionResponse createSubscription(
@@ -47,9 +96,36 @@ public class SubscriptionServiceImpl implements SubscriptionService{
                 .billingKey(response.billingKey())
                 .price(4900)
                 .build();
-
         subscriptionMapper.save(subscription);
-        return CreateSubscriptionResponse.from(subscription);
+
+        String orderId = "Order_" + UUID.randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 20);
+
+        BillingPaymentResponse paymentResponse =  tossPaymentClient.charge(
+                subscription.getBillingKey(),
+                subscription.getCustomerKey(),
+                orderId,
+                "구독 1개월",
+                subscription.getPrice()
+        );
+
+        Payment payment = Payment.builder()
+                .memberId(memberId)
+                .subscriptionId(subscription.getSubscriptionId())
+                .paymentKey(paymentResponse.paymentKey())
+                .orderId(paymentResponse.orderId())
+                .orderName(paymentResponse.orderName())
+                .status(paymentResponse.status())
+                .method(paymentResponse.method())
+                .totalAmount(paymentResponse.totalAmount())
+                .requestedAt(paymentResponse.requestedAt())
+                .approvedAt(paymentResponse.approvedAt())
+                .build();
+        paymentMapper.save(payment);
+
+        return CreateSubscriptionResponse.from(payment);
     }
 
     @Override
@@ -64,7 +140,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
 
     // 로그인 붙으면 확인절차 로직 만들것
     @Override
-    @PreAuthorize("@SubscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
+    @PreAuthorize("@subscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
     public SubscriptionDetailResponse getSubscriptionDetail(Long subscriptionId) {
         return subscriptionMapper.findSubscriptionDetail(subscriptionId);
     }

@@ -286,19 +286,17 @@ CREATE TABLE subscription (
 -- 12. payment (결제 이력)
 -- =========================================================
 CREATE TABLE payment (
-     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-     member_id BIGINT NOT NULL,
-     subscription_id BIGINT NOT NULL,
-     payment_key VARCHAR(255) NOT NULL,
-     order_id VARCHAR(100) NOT NULL,
-     order_name VARCHAR(100) NOT NULL,
-     status VARCHAR(50) NOT NULL,
-     method VARCHAR(20) NOT NULL,
-     total_amount INT NOT NULL,
-     url VARCHAR(300) NOT NULL,
-     requested_at VARCHAR(100) NOT NULL,
-     approved_at VARCHAR(100) NULL,
-
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id BIGINT NOT NULL,
+    subscription_id BIGINT NOT NULL,
+    payment_key VARCHAR(255) NOT NULL,
+    order_id VARCHAR(100) NOT NULL,
+    order_name VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    method VARCHAR(20) NOT NULL,
+    total_amount INT NOT NULL,
+    requested_at VARCHAR(100) NOT NULL,
+    approved_at VARCHAR(100) NULL,
 
      CONSTRAINT fk_payment_member
          FOREIGN KEY (member_id)
