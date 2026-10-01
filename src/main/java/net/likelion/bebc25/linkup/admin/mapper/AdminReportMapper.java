@@ -18,9 +18,9 @@ public interface AdminReportMapper {
 
     void updateReportStatus(@Param("reportId") Long reportId, @Param("status") String status);
 
-    void hidePost(@Param("postId") Long postId);
+    void deletePost(@Param("postId") Long postId);
 
-    void hideReply(@Param("replyId") Long replyId);
+    void deleteReply(@Param("replyId") Long replyId);
 
     int increaseWarningCount(@Param("memberId") Long memberId);
 

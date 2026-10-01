@@ -30,7 +30,7 @@ public class ReportServiceImpl implements ReportService {
             throw new IllegalArgumentException("본인의 게시글은 신고할 수 없습니다.");
         }
         // 신고 등록
-        reportMapper.saveReport(memberId, postId, request);
+        reportMapper.saveReport(memberId, postId, postDetailResponse.memberId(), postDetailResponse.content(), request);
     }
 
     @Transactional

@@ -12,6 +12,7 @@
             target_type,
             reason,
             content,
+            reported_content,
             status,
             created_at,
             updated_at
@@ -19,11 +20,12 @@
 
         VALUES (
             #{memberId},
-            #{postId},
+            #{targetMemberId},
             #{postId},
             'POST',
             #{request.reason},
             #{request.content},
+            #{reportedContent},
             'WAIT',
             NOW(),
             NOW()
