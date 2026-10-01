@@ -1,11 +1,13 @@
 package net.likelion.bebc25.linkup.search.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
 import net.likelion.bebc25.linkup.post.dto.PostCardResponse;
 import net.likelion.bebc25.linkup.search.dto.CursorResponse;
 import net.likelion.bebc25.linkup.search.dto.SearchFilter;
 import net.likelion.bebc25.linkup.search.service.PostSearchService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,8 +24,10 @@ public class PostSearchController {
             @RequestParam(defaultValue = "ALL") SearchFilter filter,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+
+        Long memberId = userDetails.getId();
 
         return ResponseEntity.ok(
                 postSearchService.searchPosts(
