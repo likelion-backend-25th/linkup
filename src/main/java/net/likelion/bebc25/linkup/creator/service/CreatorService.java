@@ -6,4 +6,6 @@ public interface CreatorService {
     PagingSubscriberListResponse getSubscriberList(
             Long creatorId, Long cursor, int size
     );
+
+    void applyCreator(Long memberId);
 }
