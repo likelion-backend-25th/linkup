@@ -44,7 +44,7 @@ public class ReplyLikeServiceImpl implements ReplyLikeService {
     }
     // 구독자 전용 게시글은 작성자 또는 유효한 구독자만 댓글 좋아요를 누를 수 있다.
     private void validatePostReadAccess(Long postId, Long memberId) {
-        Post post = postMapper.findById(postId);
+        Post post = postMapper.findById(postId, memberId);
 
         if (post == null) {
             throw new ResponseStatusException(

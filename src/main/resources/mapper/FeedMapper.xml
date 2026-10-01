@@ -41,10 +41,12 @@
                 OR p.member_id = #{memberId}
             )
             AND NOT EXISTS (
-                SELECT 1
-                FROM block b
-                WHERE b.member_id = #{memberId}
-                AND b.blocked_id = p.member_id
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{memberId})
             )
 
             <if test="cursor != null">
@@ -65,11 +67,16 @@
         <where>
             AND s.member_id = #{memberId}
             AND s.status = 'ACTIVE'
-            AND NOT EXISTS (
-                SELECT 1
-                FROM block b
-                WHERE b.member_id = #{memberId}
-                AND b.blocked_id = p.member_id
+            AND (
+            #{viewerId} IS NULL
+            OR NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{viewerId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{viewerId})
+            )
             )
 <!--            AND s.end_date > CURRENT_TIMESTAMP-->
             <if test="cursor != null">
@@ -90,13 +97,15 @@
             AND p.member_id = #{targetMemberId}
             AND p.subscriber_only = FALSE
             AND (
-                #{viewerId} IS NULL
-                OR NOT EXISTS (
-                    SELECT 1
-                    FROM block b
-                    WHERE b.member_id = #{viewerId}
-                    AND b.blocked_id = p.member_id
-                )
+            #{viewerId} IS NULL
+            OR NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{viewerId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{viewerId})
+            )
             )
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
@@ -141,13 +150,15 @@
         <where>
             AND p.subscriber_only = FALSE
             AND (
-                #{memberId} IS NULL
-                OR NOT EXISTS (
-                    SELECT 1
-                    FROM block b
-                    WHERE b.member_id = #{memberId}
-                    AND b.blocked_id = p.member_id
-                )
+            #{memberId} IS NULL
+            OR NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{memberId})
+            )
             )
             <if test="cursorLikeCount != null and cursorPostId != null">
                 AND (
