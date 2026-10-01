@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+        <!DOCTYPE mapper
+                PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.search.mapper.PostSearchMapper">
+
+    <!-- =========================================================
+     게시글 검색
+     무한 스크롤 방식
+     ========================================================= -->
+    <select id="searchPosts"
+            resultType="net.likelion.bebc25.linkup.post.dto.PostCardResponse">
+
+        SELECT
+        p.id AS postId,
+        m.id AS memberId,
+        m.name AS memberName,
+        m.unique_id AS uniqueId,
+        m.profile_image AS profileImageUrl,
+        p.content AS content,
+
+        -- 대표 이미지
+        (
+        SELECT pi.image_url
+        FROM post_image pi
+        WHERE pi.post_id = p.id
+        ORDER BY pi.image_order ASC
+        LIMIT 1
+        ) AS mainImageUrl,
+
+        p.like_count AS likeCount,
+
+        -- 댓글 수
+        (
+        SELECT COUNT(*)
+        FROM reply r
+        WHERE r.post_id = p.id
+        AND r.hidden = FALSE
+        ) AS commentCount,
+
+        -- 내가 좋아요를 눌렀는지
+        <choose>
+            <when test="memberId != null">
+                EXISTS (
+                SELECT 1
+                FROM post_like pl
+                WHERE pl.post_id = p.id
+                AND pl.member_id = #{memberId}
+                ) AS likedByMe,
+            </when>
+            <otherwise>
+                FALSE AS likedByMe,
+            </otherwise>
+        </choose>
+
+        p.subscriber_only AS subscriberOnly,
+        p.created_at AS createdAt
+
+        FROM post p
+
+        JOIN member m
+        ON m.id = p.member_id
+
+        WHERE
+        p.content LIKE CONCAT('%', #{keyword}, '%')
+
+        <!-- 구독자 전용 게시글 접근 제한 -->
+        <if test="memberId == null">
+
+            AND p.subscriber_only = FALSE
+
+        </if>
+
+        <if test="memberId != null">
+
+            AND (
+            p.subscriber_only = FALSE
+
+            OR p.member_id = #{memberId}
+
+            OR EXISTS (
+            SELECT 1
+            FROM subscription s
+            WHERE s.member_id = #{memberId}
+            AND s.creator_id = p.member_id
+            AND s.status = 'ACTIVE'
+            )
+            )
+
+        </if>
+
+        <!-- 로그인 상태라면 차단 관계 사용자의 게시글 제외 -->
+        <if test="memberId != null">
+
+            AND NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (
+            b.member_id = #{memberId}
+            AND b.blocked_id = p.member_id
+            )
+            OR
+            (
+            b.member_id = p.member_id
+            AND b.blocked_id = #{memberId}
+            )
+            )
+
+        </if>
+
+        <!-- 팔로우 사용자 게시글 -->
+        <if test="filter != null and filter.name() == 'FOLLOWING'">
+
+            AND EXISTS (
+            SELECT 1
+            FROM follow f
+            WHERE f.member_id = #{memberId}
+            AND f.target_id = p.member_id
+            )
+
+        </if>
+
+        <!-- 구독 사용자 게시글 -->
+        <if test="filter != null and filter.name() == 'SUBSCRIBING'">
+
+            AND EXISTS (
+            SELECT 1
+            FROM subscription s
+            WHERE s.member_id = #{memberId}
+            AND s.creator_id = p.member_id
+            AND s.status = 'ACTIVE'
+            )
+
+        </if>
+
+        <!-- 커서 기반 무한 스크롤 -->
+        <if test="cursorId != null">
+            AND p.id &lt; #{cursorId}
+        </if>
+
+        ORDER BY p.id DESC
+
+        LIMIT #{size}
+
+    </select>
+
+</mapper>

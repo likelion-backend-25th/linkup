@@ -3,8 +3,8 @@ package net.likelion.bebc25.linkup.search.service;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.search.dto.MemberSearchResponse;
 import net.likelion.bebc25.linkup.search.dto.CursorResponse;
-import net.likelion.bebc25.linkup.search.dto.UserSearchFilter;
-import net.likelion.bebc25.linkup.search.mapper.SearchMapper;
+import net.likelion.bebc25.linkup.search.dto.SearchFilter;
+import net.likelion.bebc25.linkup.search.mapper.MemberSearchMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -14,14 +14,14 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
 @RequiredArgsConstructor
-public class SearchServiceImpl implements SearchService {
+public class MemberSearchServiceImpl implements MemberSearchService {
 
-    private final SearchMapper searchMapper;
+    private final MemberSearchMapper memberSearchMapper;
 
     @Override
     public CursorResponse<MemberSearchResponse> searchMembers(
             String keyword,
-            UserSearchFilter filter,
+            SearchFilter filter,
             Long memberId,
             Long cursorId,
             int size
@@ -37,6 +37,14 @@ public class SearchServiceImpl implements SearchService {
 
         // 앞뒤 공백 제거
         keyword = keyword.trim();
+
+        // memberId 검사
+        if (memberId != null && memberId <= 0) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    "memberId는 1 이상이어야 합니다."
+            );
+        }
 
         // cursor 검사
         if (cursorId != null && cursorId <= 0) {
@@ -55,7 +63,7 @@ public class SearchServiceImpl implements SearchService {
         }
 
         // FOLLOWING / SUBSCRIBING은 로그인 필요
-        if (filter != UserSearchFilter.ALL && memberId == null) {
+        if (filter != SearchFilter.ALL && memberId == null) {
             throw new ResponseStatusException(
                     BAD_REQUEST,
                     "팔로우/구독 사용자 검색은 로그인이 필요합니다."
@@ -64,7 +72,7 @@ public class SearchServiceImpl implements SearchService {
 
         // 다음 데이터가 있는지 확인하기 위해 size + 1개 조회
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
+                memberSearchMapper.searchMembers(
                         keyword,
                         filter,
                         memberId,
@@ -92,4 +100,5 @@ public class SearchServiceImpl implements SearchService {
                 hasNext
         );
     }
+
 }
