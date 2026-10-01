@@ -18,12 +18,6 @@ public interface SubscriptionMapper {
 
     int deleteExpirations();
 
-    List<SubscriptionResponse> findAll();
-
-    List<SubscriptionResponse> findByCreatorId(@Param("creatorId") Long creatorId);
-
-    List<SubscriptionResponse> findByMemberId(@Param("memberId") Long memberId);
-
     String findByMemberIdAndCreatorId(@Param("memberId") Long memberId, @Param("creatorId") Long creatorId) ;
 
     Subscription findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
