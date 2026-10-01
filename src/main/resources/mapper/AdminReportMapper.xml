@@ -61,10 +61,7 @@
             r.post_id AS postId,
             r.reply_id AS replyId,
 
-            CASE
-                WHEN r.target_type = 'POST' THEN p.member_id
-                WHEN r.target_type = 'REPLY' THEN reply.member_id
-            END AS targetMemberId,
+            r.target_id AS targetMemberId,
 
             reporter.name AS reporterName,
             target_member.name AS targetUserName,
