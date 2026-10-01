@@ -81,7 +81,9 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     private ReplyResponse withLikedByMe(ReplyResponse reply, Long memberId) {
-        boolean likedByMe = replyLikeMapper.existsByReplyIdAndMemberId(reply.id(), memberId);
+        boolean likedByMe = memberId != null
+                && replyLikeMapper.existsByReplyIdAndMemberId(reply.id(), memberId);
+
 
         return new ReplyResponse(
                 reply.id(),
@@ -116,7 +118,9 @@ public class ReplyServiceImpl implements ReplyService {
         Post post = getPostOrThrow(postId, memberId);
         Long authorId = post.getMemberId();
 
-        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+        if (memberId != null
+                && !memberId.equals(authorId)
+                && blockMapper.existsBlock(memberId, authorId) > 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "게시글이 존재하지 않습니다."
@@ -127,7 +131,7 @@ public class ReplyServiceImpl implements ReplyService {
             return;
         }
 
-        if (memberId.equals(authorId)) {
+        if (memberId != null && memberId.equals(authorId)) {
             return;
         }
 

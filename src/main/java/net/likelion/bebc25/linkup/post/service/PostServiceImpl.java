@@ -481,7 +481,9 @@ public class PostServiceImpl implements PostService {
     private void validatePostReadAccess(PostDetailRow postDetailRow, Long memberId) {
         Long authorId = postDetailRow.getMemberId();
 
-        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+        if (memberId != null
+                && !memberId.equals(authorId)
+                && blockMapper.existsBlock(memberId, authorId) > 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "게시글이 존재하지 않습니다."
@@ -492,11 +494,11 @@ public class PostServiceImpl implements PostService {
             return;
         }
 
-        if (memberId.equals(authorId)) {
+        if (memberId != null && memberId.equals(authorId)) {
             return;
         }
 
-        if (!postMapper.existsValidSubscription(memberId, authorId)) {
+        if (memberId == null || !postMapper.existsValidSubscription(memberId, authorId)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "구독하지 않은 게시글입니다."
@@ -616,7 +618,7 @@ public class PostServiceImpl implements PostService {
 
     // 작성자 본인 게시글에는 팔로우 버튼 상태가 필요 없으므로 false를 반환한다
     private boolean isFollowingAuthor(Long memberId, Long authorId) {
-        if (memberId.equals(authorId)) {
+        if (memberId == null || memberId.equals(authorId)) {
             return false;
         }
 

@@ -62,7 +62,7 @@ public class PostController {
             @PathVariable Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = userDetails.getId();
+        Long memberId = userDetails != null ? userDetails.getId() : null;
         PostDetailResponse response = postService.getPostDetailById(postId, memberId);
         return ResponseEntity.ok(response);
     }
