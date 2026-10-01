@@ -7,6 +7,7 @@ import net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -16,6 +17,8 @@ public interface SubscriptionMapper {
 
     int updateCancel(@Param("subscriptionId") Long subscriptionId);
 
+    int updateRemoved(@Param("subscriptionId") Long subscriptionId);
+
     int updateNextBillingAt(@Param("subscriptionId") Long subscriptionId);
 
     int deleteExpirations();
@@ -23,6 +26,8 @@ public interface SubscriptionMapper {
     String findByMemberIdAndCreatorId(@Param("memberId") Long memberId, @Param("creatorId") Long creatorId) ;
 
     Subscription findBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
+
+    LocalDateTime checkStartDate(@Param("subscriptionId") Long subscriptionId);
 
     SubscriptionDetailResponse findSubscriptionDetail(@Param("subscriptionId") Long subscriptionId);
 

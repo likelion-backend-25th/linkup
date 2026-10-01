@@ -1,20 +1,19 @@
 package net.likelion.bebc25.linkup.subscription.service;
 
-import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface SubscriptionService {
 
-    int cancelSubscription(
-            Long subscriptionId
-    );
+    CancelSubscriptionResponse cancelSubscription(Long subscriptionId);
+
+    RefundSubscriptionResponse refundSubscription(Long memberId, Long subscriptionId);
 
     int deleteExpiredSubscriptions();
 
     int autoPayment();
+
+    CheckBillingDateResponse checkBillingDate(@Param("subscriptionId") Long subscriptionId);
 
     CreateSubscriptionResponse createSubscription(
             Long memberId, CreateSubscriptionRequest createSubscriptionRequest

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.common.config.TossProperties;
 import net.likelion.bebc25.linkup.payment.dto.BillingKeyResponse;
 import net.likelion.bebc25.linkup.payment.dto.BillingPaymentResponse;
+import net.likelion.bebc25.linkup.payment.dto.RefundPaymentResponse;
 import net.likelion.bebc25.linkup.payment.dto.TossApiError;
 import net.likelion.bebc25.linkup.payment.exception.TossApiException;
 import org.springframework.http.HttpHeaders;
@@ -93,7 +94,24 @@ public class TossPaymentClient {
                     .retrieve()
                     .toBodilessEntity();
 
-        } catch (org.springframework.web.client.RestClientResponseException e) {
+        } catch (RestClientResponseException e) {
+            throw createTossApiException(e);
+        }
+    }
+
+    // 환불
+    public RefundPaymentResponse refund(String paymentKey) {
+        try {
+            return tossRestClient
+                    .post()
+                    .uri("/v1/payments/{paymentKey}/cancel", paymentKey)
+                    .header(HttpHeaders.AUTHORIZATION, authorization())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("cancelReason", "구매자 변심"))
+                    .retrieve()
+                    .body(RefundPaymentResponse.class);
+
+        } catch (RestClientResponseException e) {
             throw createTossApiException(e);
         }
     }

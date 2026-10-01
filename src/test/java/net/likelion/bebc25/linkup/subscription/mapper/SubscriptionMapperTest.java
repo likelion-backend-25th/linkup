@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +66,20 @@ public class SubscriptionMapperTest {
     }
 
     @Test
+    @DisplayName("updateRemoved 테스트")
+    void updateRemovedTest() {
+        Long subId = 1L;
+
+        int resultValue = subscriptionMapper.updateRemoved(subId);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(subId);
+        assertThat(result.getStatus()).isEqualTo("REMOVED");
+        assertThat(result.getNextBillingAt()).isNull();
+        System.out.println(result);
+    }
+
+    @Test
     @DisplayName("updateNextBillingAt 테스트")
     void updateNextBillingAtTest() {
         Long subId = 1L;
@@ -110,6 +125,16 @@ public class SubscriptionMapperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getSubscriptionId()).isEqualTo(targetId);
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("checkStartDate 테스트")
+    void checkStartDateTest() {
+        Long targetId = 1L;
+
+        LocalDateTime result = subscriptionMapper.checkStartDate(targetId);
+
         System.out.println(result);
     }
 
