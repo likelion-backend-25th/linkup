@@ -2,6 +2,7 @@ package net.likelion.bebc25.linkup.member.service;
 
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
+import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
 import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto;
@@ -22,6 +23,7 @@ public class MemberService {
     private final MemberMapper memberMapper;
     private final FileStorageService fileStorageService;
     private final BlockMapper blockMapper;
+    private final FollowMapper followMapper;
 
     @Transactional(readOnly = true)
     public MemberDto getMyInfo(Long memberId) {
@@ -67,10 +69,16 @@ public class MemberService {
         memberMapper.updateProfile(member);
     }
 
-    public MemberResponseDto getMemberProfile(Long memberId) {
+    public MemberResponseDto getMemberProfile(
+            Long loginMemberId,
+            Long targetMemberId
+    ) {
+        if (blockMapper.existsBlockBetween(loginMemberId, targetMemberId)) {
+            throw new IllegalArgumentException("차단 관계의 사용자입니다.");
+        }
 
         MemberResponseDto profile =
-                memberMapper.findProfileById(memberId);
+                memberMapper.findProfileById(targetMemberId);
 
         if (profile == null) {
             throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
@@ -79,6 +87,7 @@ public class MemberService {
         return profile;
     }
 
+    @Transactional
     public void blockMember(Long memberId, Long blockedId) {
 
         if (memberId.equals(blockedId)) {
@@ -89,7 +98,11 @@ public class MemberService {
             throw new IllegalArgumentException("이미 차단한 회원입니다.");
         }
 
+        // 차단 등록
         blockMapper.saveBlock(memberId, blockedId);
+
+        // 서로의 팔로우 관계 제거
+        followMapper.deleteFollowBetween(memberId, blockedId);
     }
 
     public void unblockMember(Long memberId, Long blockedId) {

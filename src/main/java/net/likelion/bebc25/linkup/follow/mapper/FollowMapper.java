@@ -71,5 +71,9 @@ public interface FollowMapper {
             @Param("limit") int limit
     );
 
+    void deleteFollowBetween(
+            @Param("memberId") Long memberId,
+            @Param("targetId") Long targetId
+    );
 }
 

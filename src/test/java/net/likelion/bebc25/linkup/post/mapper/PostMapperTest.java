@@ -30,7 +30,10 @@ public class PostMapperTest {
         Member member = memberMapper.findById(post.getMemberId());
 
         // when
-        PostDetailRow row = postMapper.findDetailById(post.getId());
+        PostDetailRow row = postMapper.findDetailById(
+                post.getId(),
+                member.getId()
+        );
 
         // then
         assertThat(row.getId()).isEqualTo(post.getId());
@@ -39,6 +42,7 @@ public class PostMapperTest {
         assertThat(row.getName()).isEqualTo(member.getName());
         assertThat(row.getUniqueId()).isEqualTo(member.getUniqueId());
     }
+
     @Test
     @DisplayName("신규 게시글 등록 테스트")
     public void createPostTest() {
@@ -47,7 +51,10 @@ public class PostMapperTest {
 
         // when
         int result = postMapper.insert(post);
-        Post postResult = postMapper.findById(post.getId());
+        Post postResult = postMapper.findById(
+                post.getId(),
+                post.getMemberId()
+        );
 
         // then
         assertThat(result).isEqualTo(1);
@@ -67,6 +74,7 @@ public class PostMapperTest {
                 .fileUrl(null)
                 .subscriberOnly(false)
                 .build();
+
         postMapper.insert(post);
         Long postId = post.getId();
 
@@ -75,7 +83,10 @@ public class PostMapperTest {
 
         // then
         assertThat(deletedCount).isEqualTo(1);
-        assertThat(postMapper.findById(postId)).isNull();
+        assertThat(postMapper.findById(
+                postId,
+                post.getMemberId()
+        )).isNull();
     }
 
     @Test
@@ -88,6 +99,7 @@ public class PostMapperTest {
                 .fileUrl(null)
                 .subscriberOnly(false)
                 .build();
+
         postMapper.insert(post);
         Long postId = post.getId();
 
@@ -98,11 +110,16 @@ public class PostMapperTest {
                 .fileUrl("test.txt")
                 .subscriberOnly(true)
                 .build();
+
         // when
         int updateCount = postMapper.updateById(updatePost);
 
         // then
-        Post postDetail = postMapper.findById(postId);
+        Post postDetail = postMapper.findById(
+                postId,
+                post.getMemberId()
+        );
+
         assertThat(updateCount).isEqualTo(1);
         assertThat(postDetail.getId()).isEqualTo(updatePost.getId());
         assertThat(postDetail.getContent()).isEqualTo(updatePost.getContent());
@@ -116,6 +133,7 @@ public class PostMapperTest {
                 .content(content)
                 .subscriberOnly(subscriberOnly)
                 .build();
+
         postMapper.insert(post);
         return post;
     }

@@ -41,10 +41,14 @@ public class MemberController {
 
     @GetMapping("/{memberId}")
     public ResponseEntity<MemberResponseDto> getMemberProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long memberId
     ) {
         return ResponseEntity.ok(
-                memberService.getMemberProfile(memberId)
+                memberService.getMemberProfile(
+                        userDetails.getId(),
+                        memberId
+                )
         );
     }
 
