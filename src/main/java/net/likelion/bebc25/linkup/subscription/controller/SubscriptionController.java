@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
+import net.likelion.bebc25.linkup.payment.service.PaymentService;
 import net.likelion.bebc25.linkup.subscription.dto.*;
 import net.likelion.bebc25.linkup.subscription.service.SubscriptionService;
 import org.springframework.http.HttpStatus;

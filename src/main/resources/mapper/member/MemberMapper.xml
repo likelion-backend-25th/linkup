@@ -96,6 +96,7 @@
         m.name,
         m.profile_image AS profileImage,
         m.introduction,
+        m.role,
 
         (
         SELECT COUNT(*)
@@ -104,21 +105,7 @@
         ) AS postCount,
 
         m.follower_count AS followerCount,
-        m.following_count AS followingCount,
-
-        CASE
-        WHEN m.role = 'ROLE_CREATOR'
-        THEN TRUE
-        ELSE FALSE
-        END AS creator,
-
-        (
-        SELECT s.price
-        FROM subscription s
-        WHERE s.creator_id = m.id
-        AND s.status = 'ACTIVE'
-        LIMIT 1
-        ) AS subscriptionPrice
+        m.following_count AS followingCount
 
         FROM member m
         WHERE m.id = #{memberId}

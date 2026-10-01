@@ -105,3 +105,8 @@ cloud:
 
 app:
   frontend-url: ${FRONTEND_URL}
+
+toss:
+  payments:
+    secret-key: ${TOSS_SECRET_KEY}
+    api-url: "https://api.tosspayments.com"

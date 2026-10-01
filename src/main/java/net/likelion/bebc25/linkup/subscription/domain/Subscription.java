@@ -15,7 +15,8 @@ public class Subscription {
     private Long subscriptionId;
     private Long creatorId;
     private Long memberId;
-    private String customerUid;
+    private String customerKey;
+    private String billingKey;
     private int price;
     private LocalDateTime startDate;
     private LocalDateTime endDate;

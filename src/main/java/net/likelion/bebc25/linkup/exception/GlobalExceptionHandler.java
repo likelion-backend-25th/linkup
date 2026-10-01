@@ -1,5 +1,6 @@
 package net.likelion.bebc25.linkup.exception;
 
+import net.likelion.bebc25.linkup.payment.exception.TossApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,5 +23,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(TossApiException.class)
+    public ResponseEntity<Map<String, String>> handleTossApiException(TossApiException e) {
+        return ResponseEntity
+                .status(e.getHttpStatus())
+                .body(Map.of("message", e.getCode()));
     }
 }
