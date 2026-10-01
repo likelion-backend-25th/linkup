@@ -3,6 +3,7 @@ package net.likelion.bebc25.linkup.mapper;
 import net.likelion.bebc25.linkup.follow.dto.FollowResponse;
 import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
 import net.likelion.bebc25.linkup.follow.service.FollowServiceImpl;
+import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -20,8 +22,57 @@ class FollowServiceImplTest {
     @Mock
     private FollowMapper followMapper;
 
+    @Mock
+    private BlockMapper blockMapper;
+
     @InjectMocks
     private FollowServiceImpl followService;
+
+    @Test
+    @DisplayName("내가 상대방을 차단한 경우 팔로우할 수 없다")
+    void cannotFollowBlockedMemberByMe() {
+
+        Long memberId = 1L;
+        Long targetId = 5L;
+
+        given(blockMapper.existsBlock(memberId, targetId))
+                .willReturn(1);
+
+        given(blockMapper.existsBlock(targetId, memberId))
+                .willReturn(0);
+
+        assertThatThrownBy(() ->
+                followService.addFollow(memberId, targetId)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("차단 관계에서는 팔로우할 수 없습니다.");
+
+        verify(followMapper, never())
+                .addFollow(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("상대방이 나를 차단한 경우 팔로우할 수 없다")
+    void cannotFollowBlockedMemberByTarget() {
+
+        Long memberId = 1L;
+        Long targetId = 5L;
+
+        given(blockMapper.existsBlock(memberId, targetId))
+                .willReturn(0);
+
+        given(blockMapper.existsBlock(targetId, memberId))
+                .willReturn(1);
+
+        assertThatThrownBy(() ->
+                followService.addFollow(memberId, targetId)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("차단 관계에서는 팔로우할 수 없습니다.");
+
+        verify(followMapper, never())
+                .addFollow(anyLong(), anyLong());
+    }
 
     @Test
     @DisplayName("팔로우 성공")
@@ -30,9 +81,20 @@ class FollowServiceImplTest {
         Long memberId = 2L;
         Long targetId = 10L;
 
+        given(blockMapper.existsBlock(memberId, targetId))
+                .willReturn(0);
+
+        given(blockMapper.existsBlock(targetId, memberId))
+                .willReturn(0);
+
+        given(followMapper.isFollowing(memberId, targetId))
+                .willReturn(false);
+
         followService.addFollow(memberId, targetId);
 
         verify(followMapper).addFollow(memberId, targetId);
+        verify(followMapper).incrementFollowingCount(memberId);
+        verify(followMapper).incrementFollowerCount(targetId);
     }
 
     @Test
@@ -67,6 +129,9 @@ class FollowServiceImplTest {
 
         verify(followMapper)
                 .deleteFollow(memberId, targetId);
+
+        verify(followMapper).decrementFollowingCount(memberId);
+        verify(followMapper).decrementFollowerCount(targetId);
     }
 
     @Test
@@ -118,8 +183,14 @@ class FollowServiceImplTest {
         Long memberId = 2L;
         Long targetId = 10L;
 
-        when(followMapper.isFollowing(memberId, targetId))
-                .thenReturn(true);
+        given(blockMapper.existsBlock(memberId, targetId))
+                .willReturn(0);
+
+        given(blockMapper.existsBlock(targetId, memberId))
+                .willReturn(0);
+
+        given(followMapper.isFollowing(memberId, targetId))
+                .willReturn(true);
 
         assertThatThrownBy(() ->
                 followService.addFollow(memberId, targetId)
@@ -127,7 +198,7 @@ class FollowServiceImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이미 팔로우한 사용자입니다.");
 
-        // 이미 팔로우 중이므로 INSERT가 실행되면 안 됨
+        // 이미 follow 중이므로 INSERT 실행되면 안 됨
         verify(followMapper, never())
                 .addFollow(memberId, targetId);
     }
