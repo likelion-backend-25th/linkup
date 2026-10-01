@@ -34,11 +34,7 @@
         ON reply.id = r.reply_id
 
         LEFT JOIN member target_member
-        ON target_member.id =
-            CASE
-                WHEN r.target_type = 'POST' THEN p.member_id
-                WHEN r.target_type = 'REPLY' THEN reply.member_id
-            END
+        ON target_member.id = r.target_id
 
         WHERE 1 = 1
 
@@ -65,10 +61,7 @@
             r.post_id AS postId,
             r.reply_id AS replyId,
 
-            CASE
-                WHEN r.target_type = 'POST' THEN p.member_id
-                WHEN r.target_type = 'REPLY' THEN reply.member_id
-            END AS targetMemberId,
+            r.target_id AS targetMemberId,
 
             reporter.name AS reporterName,
             target_member.name AS targetUserName,
@@ -95,11 +88,7 @@
             ON reply.id = r.reply_id
 
         LEFT JOIN member target_member
-            ON target_member.id =
-            CASE
-                WHEN r.target_type = 'POST' THEN p.member_id
-                WHEN r.target_type = 'REPLY' THEN reply.member_id
-            END
+        ON target_member.id = r.target_id
 
         WHERE r.id = #{reportId}
 
@@ -116,26 +105,16 @@
             AND status = 'WAIT'
     </update>
 
-    <!-- 게시글 숨김 -->
-    <update id="hidePost">
-        UPDATE post
-        SET
-            hidden = TRUE,
-            updated_at = NOW()
-
+    <!-- 게시글 삭제 -->
+    <update id="deletePost">
+        DELETE FROM post
         WHERE id = #{postId}
-            AND hidden = FALSE
     </update>
 
-    <!-- 댓글 숨김 -->
-    <update id="hideReply">
-        UPDATE reply
-        SET
-            hidden = TRUE,
-            updated_at = NOW()
-
+    <!-- 댓글 삭제 -->
+    <update id="deleteReply">
+        DELETE FROM reply
         WHERE id = #{replyId}
-            AND hidden = FALSE
     </update>
 
     <!-- 대상 회원 경고 횟수 증가 -->
@@ -206,6 +185,6 @@
     <!-- 전체 회원 수 -->
     <select id="countTotalMembers" resultType="int">
         SELECT COUNT(*)
-        FROM report
+        FROM member
     </select>
 </mapper>

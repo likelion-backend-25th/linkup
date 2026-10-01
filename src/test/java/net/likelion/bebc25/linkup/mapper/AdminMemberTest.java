@@ -45,7 +45,7 @@ class AdminMemberTest {
         assertThat(members).isNotNull();
 
         for(AdminMemberResponse member : members){
-            assertThat(member.nickname().contains("test")).isTrue();
+            assertThat(matchesKeyword(member, "test")).isTrue();
         }
     }
 
@@ -61,8 +61,14 @@ class AdminMemberTest {
         assertThat(members).isNotNull();
 
         for(AdminMemberResponse member : members){
-            assertThat(member.nickname().contains("test"));
+            assertThat(matchesKeyword(member, "test")).isTrue();
         }
+    }
+
+    private boolean matchesKeyword(AdminMemberResponse member, String keyword) {
+        String lowered = keyword.toLowerCase();
+        return member.nickname().toLowerCase().contains(lowered)
+                || member.userId().toLowerCase().contains(lowered);
     }
 
     @Test

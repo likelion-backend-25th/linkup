@@ -23,40 +23,18 @@
         FROM member m
         WHERE 1 = 1
 
-        <!--   닉네임/아이디 검색     -->
+        <include refid="memberSearch"/>
+
+        ORDER BY
         <if test="keyword != null and keyword != ''">
-
-            <choose>
-                <!-- 닉네임 검색 -->
-                <when test="searchType == 'nickname'">
-                    AND m.name LIKE CONCAT('%', #{keyword}, '%')
-                </when>
-
-                <!-- 사용자 아이디 검색 -->
-                <when test="searchType == 'userId'">
-                    AND m.unique_id LIKE CONCAT('%', #{keyword}, '%')
-                </when>
-            </choose>
+            CASE
+                WHEN LOWER(m.name) LIKE CONCAT(LOWER(#{keyword}), '%') THEN 0
+                WHEN LOWER(m.unique_id) LIKE CONCAT(LOWER(#{keyword}), '%') THEN 1
+                WHEN LOWER(m.name) LIKE CONCAT('%', LOWER(#{keyword}), '%') THEN 2
+                ELSE 3
+            END,
         </if>
-
-        <!-- 회원 상태 -->
-        <if test="memberStatus != null and memberStatus != ''">
-            AND m.status = #{memberStatus}
-        </if>
-
-        <!-- 크리에이터 상태 -->
-        <if test="creatorStatus != null and creatorStatus != ''">
-            <choose>
-                <when test="creatorStatus == 'CREATOR'">
-                    AND m.role = 'ROLE_CREATOR'
-                </when>
-
-                <when test="creatorStatus == 'USER'">
-                    AND m.role = 'ROLE_USER'
-                </when>
-            </choose>
-        </if>
-        ORDER BY m.created_at DESC
+        m.created_at DESC
 
         LIMIT #{size}
         OFFSET #{offset}
@@ -67,40 +45,35 @@
         FROM member m
         WHERE 1 = 1
 
-        <!--   닉네임/아이디 검색     -->
+        <include refid="memberSearch"/>
+    </select>
+
+    <sql id="memberSearch">
         <if test="keyword != null and keyword != ''">
-
-            <choose>
-                <!-- 닉네임 검색 -->
-                <when test="searchType == 'nickname'">
-                    AND m.name LIKE CONCAT('%', #{keyword}, '%')
-                </when>
-
-                <!-- 회원 아이디 검색 -->
-                <when test="searchType == 'userId'">
-                    AND m.unique_id LIKE CONCAT('%', #{keyword}, '%')
-                </when>
-            </choose>
+            AND (
+                LOWER(m.name) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+                OR LOWER(m.unique_id) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+            )
         </if>
 
-        <!-- 회원 상태 -->
         <if test="memberStatus != null and memberStatus != ''">
             AND m.status = #{memberStatus}
         </if>
 
-        <!-- 크리에이터 상태 -->
         <if test="creatorStatus != null and creatorStatus != ''">
             <choose>
                 <when test="creatorStatus == 'CREATOR'">
                     AND m.role = 'ROLE_CREATOR'
                 </when>
-
                 <when test="creatorStatus == 'USER'">
                     AND m.role = 'ROLE_USER'
                 </when>
+                <when test="creatorStatus == 'NONE'">
+                    AND (m.role IS NULL OR m.role NOT IN ('ROLE_CREATOR', 'ROLE_USER'))
+                </when>
             </choose>
         </if>
-    </select>
+    </sql>
 
     <!-- 관리자 회원 상세 조회 -->
     <select id="findMemberDetail" resultType="net.likelion.bebc25.linkup.admin.dto.AdminMemberDetailResponse">

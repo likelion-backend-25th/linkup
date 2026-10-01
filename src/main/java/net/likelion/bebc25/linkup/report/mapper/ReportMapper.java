@@ -10,6 +10,8 @@ public interface ReportMapper {
     void saveReport(
             @Param("memberId") Long memberId,
             @Param("postId") Long postId,
+            @Param("targetMemberId") Long targetMemberId,
+            @Param("reportedContent") String reportedContent,
             @Param("request")ReportCreateRequest request
             );
 

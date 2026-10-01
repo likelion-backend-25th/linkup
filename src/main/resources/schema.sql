@@ -182,9 +182,15 @@ CREATE TABLE report (
     target_type VARCHAR(20) NOT NULL,
     reason TEXT NOT NULL,
     content TEXT NOT NULL,
+    reported_content TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'WAIT',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
+
+    KEY fk_report_member (member_id),
+    KEY fk_report_target_member (target_id),
+    KEY fk_report_post (post_id),
+    KEY fk_report_reply (reply_id),
 
     CONSTRAINT fk_report_member
         FOREIGN KEY (member_id)
@@ -194,16 +200,6 @@ CREATE TABLE report (
     CONSTRAINT fk_report_target_member
         FOREIGN KEY (target_id)
             REFERENCES member(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT fk_report_post
-        FOREIGN KEY (post_id)
-            REFERENCES post(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT fk_report_reply
-        FOREIGN KEY (reply_id)
-            REFERENCES reply(id)
             ON DELETE CASCADE
 );
 
@@ -318,3 +314,12 @@ UPDATE member
 SET role = 'ROLE_ADMIN',
     updated_at = NOW()
 WHERE id = 51;
+
+# 관리자 페이지 테스트 권한 부여
+UPDATE member
+SET role = 'ROLE_ADMIN'
+WHERE email = 'soungyoung14@gmail.com';
+#
+# UPDATE member
+# SET role = 'ROLE_ADMIN'
+# WHERE email = '본인 이메일';
