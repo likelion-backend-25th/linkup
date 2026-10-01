@@ -2,8 +2,11 @@ package net.likelion.bebc25.linkup.member.mapper;
 
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
+import net.likelion.bebc25.linkup.member.dto.RecommendedMemberResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface MemberMapper {
@@ -21,4 +24,8 @@ public interface MemberMapper {
     void updateProfile(Member member);
 
     MemberResponseDto findProfileById(@Param("memberId") Long id);
+
+    List<RecommendedMemberResponseDto> findRecommendedMembers(
+            @Param("memberId") Long memberId
+    );
 }

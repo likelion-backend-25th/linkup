@@ -81,6 +81,7 @@
         SET
         name = #{name},
         unique_id = #{uniqueId},
+        profile_image = #{profileImage},
         introduction = #{introduction},
         updated_at = NOW()
         WHERE id = #{id}
@@ -122,6 +123,46 @@
         FROM member m
         WHERE m.id = #{memberId}
 
+    </select>
+
+    <select id="findRecommendedMembers"
+            resultType="net.likelion.bebc25.linkup.member.dto.RecommendedMemberResponseDto">
+
+        SELECT
+        m.id,
+        m.name,
+        m.unique_id AS uniqueId,
+        m.profile_image AS profileImage,
+        m.introduction,
+        m.follower_count AS followerCount,
+        CASE
+        WHEN f.member_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+        END AS following
+        FROM member m
+
+        LEFT JOIN follow f
+        ON f.member_id = #{memberId}
+        AND f.target_id = m.id
+
+        WHERE m.id != #{memberId}
+
+        -- 내가 팔로우한 사람 제외
+        AND f.member_id IS NULL
+
+        -- 차단 관계 제외
+        AND NOT EXISTS (
+        SELECT 1
+        FROM block b
+        WHERE
+        (b.member_id = #{memberId} AND b.blocked_id = m.id)
+        OR
+        (b.member_id = m.id AND b.blocked_id = #{memberId})
+        )
+
+        ORDER BY m.follower_count DESC, m.id DESC
+
+        LIMIT 4
     </select>
 
 </mapper>

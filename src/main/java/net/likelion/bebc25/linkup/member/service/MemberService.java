@@ -5,10 +5,7 @@ import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
 import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import net.likelion.bebc25.linkup.member.domain.Member;
-import net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto;
-import net.likelion.bebc25.linkup.member.dto.MemberDto;
-import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
-import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
+import net.likelion.bebc25.linkup.member.dto.*;
 import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,5 +109,10 @@ public class MemberService {
 
     public List<BlockedMemberResponseDto> getBlockedMembers(Long memberId) {
         return blockMapper.findBlockedMembers(memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecommendedMemberResponseDto> getRecommendedMembers(Long memberId) {
+        return memberMapper.findRecommendedMembers(memberId);
     }
 }
