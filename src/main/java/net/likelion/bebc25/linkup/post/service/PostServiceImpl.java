@@ -464,7 +464,8 @@ public class PostServiceImpl implements PostService {
 
     // 게시글 상세 정보를 조회하고 없으면 예외를 던진다.
     private PostDetailRow getPostDetailRowOrThrow(Long postId, Long memberId) {
-        PostDetailRow postDetailRow = getPostDetailRowOrThrow(postId, memberId);
+        PostDetailRow postDetailRow =
+                postMapper.findDetailById(postId, memberId);
 
         if (postDetailRow == null) {
             throw new ResponseStatusException(
@@ -622,3 +623,5 @@ public class PostServiceImpl implements PostService {
         return followMapper.isFollowing(memberId, authorId);
     }
 }
+
+
