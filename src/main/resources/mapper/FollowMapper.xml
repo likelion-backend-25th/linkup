@@ -106,4 +106,12 @@
         LIMIT #{limit}
     </select>
 
+    <delete id="deleteFollowBetween">
+        DELETE FROM follow
+        WHERE
+        (member_id = #{memberId} AND target_id = #{targetId})
+        OR
+        (member_id = #{targetId} AND target_id = #{memberId})
+    </delete>
+
 </mapper>

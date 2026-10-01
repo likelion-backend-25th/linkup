@@ -27,4 +27,9 @@ public interface BlockMapper {
     List<BlockedMemberResponseDto> findBlockedMembers(
             @Param("memberId") Long memberId
     );
+
+    boolean existsBlockBetween(
+            @Param("memberId") Long memberId,
+            @Param("targetId") Long targetId
+    );
 }

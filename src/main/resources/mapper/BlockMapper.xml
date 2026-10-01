@@ -47,4 +47,13 @@
 
     </select>
 
+    <select id="existsBlockBetween" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM block
+        WHERE
+        (member_id = #{memberId} AND blocked_id = #{targetId})
+        OR
+        (member_id = #{targetId} AND blocked_id = #{memberId})
+    </select>
+
 </mapper>
