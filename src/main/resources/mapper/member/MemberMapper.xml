@@ -80,6 +80,7 @@
         UPDATE member
         SET
         name = #{name},
+        unique_id = #{uniqueId},
         introduction = #{introduction},
         updated_at = NOW()
         WHERE id = #{id}
@@ -100,6 +101,9 @@
         FROM post p
         WHERE p.member_id = m.id
         ) AS postCount,
+
+        m.follower_count AS followerCount,
+        m.following_count AS followingCount,
 
         CASE
         WHEN m.role = 'ROLE_CREATOR'

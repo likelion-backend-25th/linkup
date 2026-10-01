@@ -56,6 +56,7 @@ public class MemberService {
         }
 
         member.setName(request.getName());
+        member.setUniqueId(request.getUniqueId());
         member.setIntroduction(request.getIntroduction());
 
         if (profileImage != null && !profileImage.isEmpty()) {
