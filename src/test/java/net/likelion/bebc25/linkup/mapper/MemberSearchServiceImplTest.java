@@ -2,9 +2,9 @@ package net.likelion.bebc25.linkup.mapper;
 
 import net.likelion.bebc25.linkup.search.dto.MemberSearchResponse;
 import net.likelion.bebc25.linkup.search.dto.CursorResponse;
-import net.likelion.bebc25.linkup.search.dto.UserSearchFilter;
-import net.likelion.bebc25.linkup.search.mapper.SearchMapper;
-import net.likelion.bebc25.linkup.search.service.SearchServiceImpl;
+import net.likelion.bebc25.linkup.search.dto.SearchFilter;
+import net.likelion.bebc25.linkup.search.mapper.MemberSearchMapper;
+import net.likelion.bebc25.linkup.search.service.MemberSearchServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,22 +23,22 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
-class SearchServiceImplTest {
+class MemberSearchServiceImplTest {
 
     @InjectMocks
-    private SearchServiceImpl searchService;
+    private MemberSearchServiceImpl memberSearchService;
 
     @Mock
-    private SearchMapper searchMapper;
+    private MemberSearchMapper memberSearchMapper;
 
 
-    // =========================================================
+    // 사용자 검색
+
     // 정상 동작 테스트
-    // =========================================================
 
     @Nested
     @DisplayName("정상 동작 테스트")
-    class SuccessTest {
+    class MemberSearchSuccessTest {
 
         @Test
         @DisplayName("올바른 조건으로 검색하면 회원 목록을 반환한다")
@@ -48,7 +48,7 @@ class SearchServiceImplTest {
             String keyword = "  김민준  ";
             String trimmedKeyword = "김민준";
 
-            UserSearchFilter filter = UserSearchFilter.ALL;
+            SearchFilter filter = SearchFilter.ALL;
             Long memberId = null;
 
             Long cursorId = null;
@@ -63,7 +63,7 @@ class SearchServiceImplTest {
                     )
             );
 
-            given(searchMapper.searchMembers(
+            given(memberSearchMapper.searchMembers(
                     trimmedKeyword,
                     filter,
                     memberId,
@@ -73,7 +73,7 @@ class SearchServiceImplTest {
 
             // when
             CursorResponse<MemberSearchResponse> response =
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             keyword,
                             filter,
                             memberId,
@@ -104,7 +104,7 @@ class SearchServiceImplTest {
 
             // given
             String keyword = "김";
-            UserSearchFilter filter = UserSearchFilter.ALL;
+            SearchFilter filter = SearchFilter.ALL;
             Long memberId = null;
 
             Long cursorId = 20L;
@@ -119,7 +119,7 @@ class SearchServiceImplTest {
                     )
             );
 
-            given(searchMapper.searchMembers(
+            given(memberSearchMapper.searchMembers(
                     keyword,
                     filter,
                     memberId,
@@ -129,7 +129,7 @@ class SearchServiceImplTest {
 
             // when
             CursorResponse<MemberSearchResponse> response =
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             keyword,
                             filter,
                             memberId,
@@ -158,7 +158,7 @@ class SearchServiceImplTest {
 
             // given
             String keyword = "김";
-            UserSearchFilter filter = UserSearchFilter.ALL;
+            SearchFilter filter = SearchFilter.ALL;
             Long memberId = null;
 
             Long cursorId = null;
@@ -177,7 +177,7 @@ class SearchServiceImplTest {
                             )
                             .toList();
 
-            given(searchMapper.searchMembers(
+            given(memberSearchMapper.searchMembers(
                     keyword,
                     filter,
                     memberId,
@@ -187,7 +187,7 @@ class SearchServiceImplTest {
 
             // when
             CursorResponse<MemberSearchResponse> response =
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             keyword,
                             filter,
                             memberId,
@@ -210,14 +210,11 @@ class SearchServiceImplTest {
         }
     }
 
-
-    // =========================================================
-    // Validation 테스트
-    // =========================================================
+    // 사용자 검색 Validation
 
     @Nested
     @DisplayName("예외(Validation) 발생 테스트")
-    class ValidationErrorTest {
+    class MemberSearchValidationErrorTest {
 
         @Test
         @DisplayName("검색어가 비어있거나 공백이면 BAD_REQUEST 예외가 발생한다")
@@ -225,9 +222,9 @@ class SearchServiceImplTest {
 
             // 빈 문자열
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "",
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             null,
                             20
@@ -242,12 +239,30 @@ class SearchServiceImplTest {
                             "검색어는 필수입니다."
                     );
 
+            // 공백 문자열
+            assertThatThrownBy(() ->
+                    memberSearchService.searchMembers(
+                            "   ",
+                            SearchFilter.ALL,
+                            null,
+                            null,
+                            20
+                    )
+            )
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasFieldOrPropertyWithValue(
+                            "status",
+                            BAD_REQUEST
+                    )
+                    .hasMessageContaining(
+                            "검색어는 필수입니다."
+                    );
 
             // null
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             null,
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             null,
                             20
@@ -263,6 +278,48 @@ class SearchServiceImplTest {
                     );
         }
 
+        @Test
+        @DisplayName("memberId가 0 이하이면 BAD_REQUEST 예외가 발생한다")
+        void throwExceptionWhenMemberIdIsInvalid() {
+
+            // memberId가 0일 때
+            assertThatThrownBy(() ->
+                    memberSearchService.searchMembers(
+                            "김민준",
+                            SearchFilter.ALL,
+                            0L,
+                            null,
+                            20
+                    )
+            )
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasFieldOrPropertyWithValue(
+                            "status",
+                            BAD_REQUEST
+                    )
+                    .hasMessageContaining(
+                            "memberId는 1 이상이어야 합니다."
+                    );
+
+            // memberId가 음수일 때
+            assertThatThrownBy(() ->
+                    memberSearchService.searchMembers(
+                            "김민준",
+                            SearchFilter.ALL,
+                            -1L,
+                            null,
+                            20
+                    )
+            )
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasFieldOrPropertyWithValue(
+                            "status",
+                            BAD_REQUEST
+                    )
+                    .hasMessageContaining(
+                            "memberId는 1 이상이어야 합니다."
+                    );
+        }
 
         @Test
         @DisplayName("cursorId가 0 이하이면 BAD_REQUEST 예외가 발생한다")
@@ -270,9 +327,9 @@ class SearchServiceImplTest {
 
             // cursorId가 0일 때
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             0L,
                             20
@@ -287,12 +344,11 @@ class SearchServiceImplTest {
                             "cursorId는 1 이상이어야 합니다."
                     );
 
-
             // cursorId가 음수일 때
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             -1L,
                             20
@@ -308,16 +364,15 @@ class SearchServiceImplTest {
                     );
         }
 
-
         @Test
         @DisplayName("사이즈가 1 미만이거나 100을 초과하면 BAD_REQUEST 예외가 발생한다")
         void throwExceptionWhenSizeIsInvalid() {
 
             // size가 0일 때
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             null,
                             0
@@ -332,12 +387,11 @@ class SearchServiceImplTest {
                             "size는 1 이상 100 이하이어야 합니다."
                     );
 
-
             // size가 101일 때
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.ALL,
+                            SearchFilter.ALL,
                             null,
                             null,
                             101
@@ -353,16 +407,15 @@ class SearchServiceImplTest {
                     );
         }
 
-
         @Test
         @DisplayName("로그인하지 않고 팔로우/구독 필터를 설정하면 BAD_REQUEST 예외가 발생한다")
         void throwExceptionWhenFilterRequiresLoginButMemberIdIsNull() {
 
             // FOLLOWING
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.FOLLOWING,
+                            SearchFilter.FOLLOWING,
                             null,
                             null,
                             20
@@ -377,12 +430,11 @@ class SearchServiceImplTest {
                             "팔로우/구독 사용자 검색은 로그인이 필요합니다."
                     );
 
-
             // SUBSCRIBING
             assertThatThrownBy(() ->
-                    searchService.searchMembers(
+                    memberSearchService.searchMembers(
                             "김민준",
-                            UserSearchFilter.SUBSCRIBING,
+                            SearchFilter.SUBSCRIBING,
                             null,
                             null,
                             20
@@ -398,4 +450,5 @@ class SearchServiceImplTest {
                     );
         }
     }
+
 }
