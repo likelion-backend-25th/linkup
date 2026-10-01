@@ -51,7 +51,6 @@
 
         INSERT INTO member (
         email,
-        password,
         name,
         unique_id,
         profile_image,
@@ -60,7 +59,6 @@
         )
         VALUES (
         #{email},
-        #{password},
         #{name},
         #{uniqueId},
         #{profileImage},

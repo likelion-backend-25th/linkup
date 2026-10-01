@@ -36,6 +36,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         String token = getAccessToken(authorizationHeader);
 
+        // JWT 디버깅
+        log.info("========== JWT DEBUG ==========");
+        log.info("요청 URL: {}", request.getRequestURI());
+        log.info("Authorization Header: {}", authorizationHeader);
+        log.info("JWT Token: {}", token);
+        log.info("==============================");
+
         try {
             if (token != null) {
 

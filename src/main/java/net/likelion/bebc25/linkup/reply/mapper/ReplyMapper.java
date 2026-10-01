@@ -12,8 +12,13 @@ public interface ReplyMapper {
     // 댓글 조회
     List<ReplyResponse> getByPostId(
             @Param("postId") Long postId,
+            @Param("memberId") Long memberId,
             @Param("cursor") Long cursor,
             @Param("limit") int limit);
+
+    default List<ReplyResponse> getByPostId(Long postId, Long cursor, int limit) {
+        return getByPostId(postId, null, cursor, limit);
+    }
 
     // 댓글 식별자로 조회
     Reply getById(@Param("id") Long id);

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.likelion.bebc25.linkup.common.storage.FileStorageService;
 import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
+import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import net.likelion.bebc25.linkup.member.domain.Member;
 import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import net.likelion.bebc25.linkup.post.domain.Post;
@@ -36,7 +37,7 @@ public class PostServiceImpl implements PostService {
     private static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;
     private static final long MAX_FILE_SIZE_MB = 100;
     private static final long MAX_FILE_SIZE = MAX_FILE_SIZE_MB *  1024 * 1024;
-    private static final String POST_IMAGE_DIRECTORY = "uploads/postImages/";
+    private static final String POST_IMAGE_DIRECTORY = "uploads/posts/";
     private static final String POST_FILE_DIRECTORY = "uploads/files/";
     private static final String ROLE_CREATOR = "ROLE_CREATOR";
 
@@ -46,6 +47,7 @@ public class PostServiceImpl implements PostService {
     private final FollowMapper followMapper;
     private final PostLikeMapper postLikeMapper;
     private final MemberMapper memberMapper;
+    private final BlockMapper blockMapper;
 
     @Override
     @Transactional
@@ -476,11 +478,18 @@ public class PostServiceImpl implements PostService {
 
     // 구독자 전용 게시글은 작성자 또는 유효한 구독자만 조회할 수 있다.
     private void validatePostReadAccess(PostDetailRow postDetailRow, Long memberId) {
+        Long authorId = postDetailRow.getMemberId();
+
+        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "게시글이 존재하지 않습니다."
+            );
+        }
+
         if (!postDetailRow.isSubscriberOnly()) {
             return;
         }
-
-        Long authorId = postDetailRow.getMemberId();
 
         if (memberId.equals(authorId)) {
             return;

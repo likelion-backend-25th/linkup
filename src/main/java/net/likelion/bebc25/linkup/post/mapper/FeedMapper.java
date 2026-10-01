@@ -25,20 +25,23 @@ public interface FeedMapper {
 
     // 내 전체 공개 게시글 피드 조회
     List<PostCardResponse> findFeedByMemberId(
-            @Param("memberId") Long memberId,
+            @Param("targetMemberId") Long targetMemberId,
+            @Param("viewerId") Long viewerId,
             @Param("cursor") Long cursor,
             @Param("limit") int limit
     );
 
     // 내 구독자 전용 게시글 피드 조회
     List<PostCardResponse> findSubscriberOnlyFeedByMemberId(
-            @Param("memberId") Long memberId,
+            @Param("targetMemberId") Long targetMemberId,
+            @Param("viewerId") Long viewerId,
             @Param("cursor") Long cursor,
             @Param("limit") int limit
     );
 
     // 전체 게시글 좋아요 순으로 피드 조회
     List<PostCardResponse> findPopularFeed(
+            @Param("memberId") Long memberId,
             @Param("cursorLikeCount") Integer cursorLikeCount,
             @Param("cursorPostId") Long cursorPostId,
             @Param("limit") int limit

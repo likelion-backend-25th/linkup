@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.likelion.bebc25.linkup.member.block.mapper.BlockMapper">
+
+    <select id="existsBlock" resultType="int">
+        SELECT COUNT(*)
+        FROM block
+        WHERE member_id = #{memberId}
+        AND blocked_id = #{blockedId}
+    </select>
+
+    <insert id="saveBlock">
+        INSERT INTO block (
+        member_id,
+        blocked_id,
+        created_at
+        )
+        VALUES (
+        #{memberId},
+        #{blockedId},
+        NOW()
+        )
+    </insert>
+
+    <delete id="deleteBlock">
+        DELETE FROM block
+        WHERE member_id = #{memberId}
+        AND blocked_id = #{blockedId}
+    </delete>
+
+    <select id="findBlockedMembers"
+            resultType="net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto">
+
+        SELECT
+        m.id,
+        m.unique_id AS uniqueId,
+        m.name,
+        m.profile_image AS profileImage
+        FROM block b
+        JOIN member m
+        ON b.blocked_id = m.id
+        WHERE b.member_id = #{memberId}
+        ORDER BY b.created_at DESC
+
+    </select>
+
+</mapper>

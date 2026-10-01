@@ -40,6 +40,12 @@
                 (f.member_id IS NOT NULL AND p.subscriber_only = FALSE)
                 OR p.member_id = #{memberId}
             )
+            AND NOT EXISTS (
+                SELECT 1
+                FROM block b
+                WHERE b.member_id = #{memberId}
+                AND b.blocked_id = p.member_id
+            )
 
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
@@ -59,6 +65,12 @@
         <where>
             AND s.member_id = #{memberId}
             AND s.status = 'ACTIVE'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM block b
+                WHERE b.member_id = #{memberId}
+                AND b.blocked_id = p.member_id
+            )
 <!--            AND s.end_date > CURRENT_TIMESTAMP-->
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
@@ -75,8 +87,17 @@
         JOIN member m ON m.id = p.member_id
         JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
         <where>
-            AND p.member_id = #{memberId}
+            AND p.member_id = #{targetMemberId}
             AND p.subscriber_only = FALSE
+            AND (
+                #{viewerId} IS NULL
+                OR NOT EXISTS (
+                    SELECT 1
+                    FROM block b
+                    WHERE b.member_id = #{viewerId}
+                    AND b.blocked_id = p.member_id
+                )
+            )
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
@@ -92,8 +113,17 @@
         JOIN member m ON m.id = p.member_id
         JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
         <where>
-            AND p.member_id = #{memberId}
+            AND p.member_id = #{targetMemberId}
             AND p.subscriber_only = TRUE
+            AND (
+                #{viewerId} IS NULL
+                OR NOT EXISTS (
+                    SELECT 1
+                    FROM block b
+                    WHERE b.member_id = #{viewerId}
+                    AND b.blocked_id = p.member_id
+                )
+            )
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
@@ -110,6 +140,15 @@
         JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
         <where>
             AND p.subscriber_only = FALSE
+            AND (
+                #{memberId} IS NULL
+                OR NOT EXISTS (
+                    SELECT 1
+                    FROM block b
+                    WHERE b.member_id = #{memberId}
+                    AND b.blocked_id = p.member_id
+                )
+            )
             <if test="cursorLikeCount != null and cursorPostId != null">
                 AND (
                 p.like_count &lt; #{cursorLikeCount}
