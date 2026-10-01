@@ -13,6 +13,9 @@ public class MemberResponseDto {
     private String profileImage;
     private String introduction;
 
+    private int followerCount;
+    private int followingCount;
+
     private int postCount;
 
     private boolean creator;
