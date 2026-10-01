@@ -63,22 +63,21 @@
         FROM post p
         JOIN subscription s ON s.creator_id = p.member_id
         JOIN member m ON m.id = p.member_id
-        JOIN post_image pi ON pi.post_id = p.id AND pi.image_order = 1
+        JOIN post_image pi
+        ON pi.post_id = p.id
+        AND pi.image_order = 1
         <where>
             AND s.member_id = #{memberId}
             AND s.status = 'ACTIVE'
-            AND (
-            #{viewerId} IS NULL
-            OR NOT EXISTS (
+            AND NOT EXISTS (
             SELECT 1
             FROM block b
             WHERE
-            (b.member_id = #{viewerId} AND b.blocked_id = p.member_id)
+            (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
             OR
-            (b.member_id = p.member_id AND b.blocked_id = #{viewerId})
+            (b.member_id = p.member_id AND b.blocked_id = #{memberId})
             )
-            )
-<!--            AND s.end_date > CURRENT_TIMESTAMP-->
+
             <if test="cursor != null">
                 AND p.id &lt; #{cursor}
             </if>
@@ -171,3 +170,5 @@
         LIMIT #{limit}
     </select>
 </mapper>
+
+
