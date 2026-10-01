@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.jwt.dto.AccessTokenResponseDto;
 import net.likelion.bebc25.linkup.jwt.provider.TokenProvider;
 import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class TokenService {
 
     private final TokenProvider tokenProvider;
+    private final MemberMapper memberMapper;
 
     /**
      * OAuth2 로그인 성공 후 Access Token + Refresh Token 발급
@@ -66,14 +68,10 @@ public class TokenService {
         }
 
         Long memberId = claims.get("id", Long.class);
-        String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-
-        Member member = Member.builder()
-                .id(memberId)
-                .email(email)
-                .role(role)
-                .build();
+        Member member = memberMapper.findById(memberId);
+        if (member == null) {
+            throw new IllegalArgumentException("존재하지 않는 회원입니다.");
+        }
 
         String accessToken = tokenProvider.generateToken(
                 member,

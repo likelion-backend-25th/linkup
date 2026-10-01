@@ -34,6 +34,7 @@ public class MemberService {
         }
 
         int postCount = memberMapper.countPosts(memberId);
+        System.out.println(member);
 
         return new MemberDto(
                 member.getId(),
@@ -43,8 +44,8 @@ public class MemberService {
                 member.getProfileImage(),
                 member.getIntroduction(),
                 postCount,
-                member.getFollower_count(),
-                member.getFollowing_count()
+                member.getFollowerCount(),
+                member.getFollowingCount()
         );
     }
 

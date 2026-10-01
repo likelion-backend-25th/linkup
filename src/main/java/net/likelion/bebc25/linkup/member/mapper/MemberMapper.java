@@ -23,6 +23,8 @@ public interface MemberMapper {
 
     void updateProfile(Member member);
 
+    int updateRoleCreator(Long memberId);
+
     MemberResponseDto findProfileById(@Param("memberId") Long id);
 
     List<RecommendedMemberResponseDto> findRecommendedMembers(

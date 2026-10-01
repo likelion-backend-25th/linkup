@@ -19,7 +19,9 @@
         warning_count,
         writing_restricted_until,
         created_at,
-        updated_at
+        updated_at,
+        following_count,
+        follower_count
         FROM member
         WHERE email = #{email}
     </select>
@@ -38,7 +40,9 @@
         warning_count,
         writing_restricted_until,
         created_at,
-        updated_at
+        updated_at,
+        following_count,
+        follower_count
         FROM member
         WHERE id = #{id}
     </select>
@@ -85,6 +89,13 @@
         introduction = #{introduction},
         updated_at = NOW()
         WHERE id = #{id}
+    </update>
+
+    <!-- 크리에이터 부여 -->
+    <update id="updateRoleCreator">
+        UPDATE member
+        SET role = "ROLE_CREATOR"
+        WHERE id = #{memberId}
     </update>
 
     <select id="findProfileById"
