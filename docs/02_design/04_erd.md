@@ -582,10 +582,7 @@ CREATE TABLE subscription (
                             CONSTRAINT fk_subscription_member
                               FOREIGN KEY (member_id)
                                 REFERENCES member(id)
-                                ON DELETE CASCADE,
-
-                            CONSTRAINT uk_subscription_creator_member
-                              UNIQUE (creator_id, member_id)
+                                ON DELETE CASCADE
 );
 
 
@@ -605,7 +602,7 @@ CREATE TABLE payment (
                        url VARCHAR(300) NOT NULL,
                        requested_at DATETIME NOT NULL,
                        approved_at DATETIME NOT NULL,
-
+                       canceled_at VARCHAR(100) NULL,
 
                        CONSTRAINT fk_payment_member
                          FOREIGN KEY (member_id)

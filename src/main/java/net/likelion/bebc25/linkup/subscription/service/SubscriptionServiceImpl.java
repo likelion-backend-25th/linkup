@@ -5,6 +5,7 @@ import net.likelion.bebc25.linkup.payment.client.TossPaymentClient;
 import net.likelion.bebc25.linkup.payment.domain.Payment;
 import net.likelion.bebc25.linkup.payment.dto.BillingKeyResponse;
 import net.likelion.bebc25.linkup.payment.dto.BillingPaymentResponse;
+import net.likelion.bebc25.linkup.payment.dto.RefundPaymentResponse;
 import net.likelion.bebc25.linkup.payment.mapper.PaymentMapper;
 import net.likelion.bebc25.linkup.subscription.domain.Subscription;
 import net.likelion.bebc25.linkup.subscription.dto.*;
@@ -27,10 +28,38 @@ public class SubscriptionServiceImpl implements SubscriptionService{
 
     @Override
     @PreAuthorize("@subscriptionServiceImpl.isAuthor(#subscriptionId, authentication.principal.id)")
-    public int cancelSubscription(Long subscriptionId) {
+    public CancelSubscriptionResponse cancelSubscription(Long subscriptionId) {
         Subscription subscription = subscriptionMapper.findBySubscriptionId(subscriptionId);
         tossPaymentClient.deleteBillingKey(subscription.getBillingKey());
-        return subscriptionMapper.updateCancel(subscriptionId);
+        subscriptionMapper.updateCancel(subscriptionId);
+        return CancelSubscriptionResponse.from(subscription.getEndDate());
+    }
+
+    @Override
+    public RefundSubscriptionResponse refundSubscription(Long memberId, Long subscriptionId) {
+        Payment payment = paymentMapper.findBySubscriptionId(subscriptionId);
+
+        RefundPaymentResponse refundResponse = tossPaymentClient.refund(payment.getPaymentKey());
+        Payment refundPayment = Payment.builder()
+                .memberId(memberId)
+                .subscriptionId(subscriptionId)
+                .paymentKey(refundResponse.paymentKey())
+                .orderId(refundResponse.orderId())
+                .orderName(refundResponse.orderName())
+                .status(refundResponse.status())
+                .method(refundResponse.method())
+                .totalAmount(refundResponse.totalAmount())
+                .requestedAt(refundResponse.requestedAt())
+                .approvedAt(refundResponse.approvedAt())
+                .canceledAt(refundResponse.cancels().getFirst().canceledAt())
+                .build();
+
+        paymentMapper.save(refundPayment);
+        subscriptionMapper.updateRemoved(subscriptionId);
+
+        return RefundSubscriptionResponse.from(
+                refundResponse.totalAmount(), refundResponse.cancels().getFirst().canceledAt()
+        );
     }
 
     @Override
@@ -70,6 +99,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
                         .totalAmount(paymentResponse.totalAmount())
                         .requestedAt(paymentResponse.requestedAt())
                         .approvedAt(paymentResponse.approvedAt())
+                        .canceledAt(null)
                         .build();
 
                 paymentMapper.save(payment);
@@ -78,6 +108,13 @@ public class SubscriptionServiceImpl implements SubscriptionService{
             }
         }
         return 0;
+    }
+
+    @Override
+    public CheckBillingDateResponse checkBillingDate(Long subscriptionId) {
+        return CheckBillingDateResponse.from(
+                paymentMapper.findBillingDate(subscriptionId)
+        );
     }
 
 
@@ -122,6 +159,7 @@ public class SubscriptionServiceImpl implements SubscriptionService{
                 .totalAmount(paymentResponse.totalAmount())
                 .requestedAt(paymentResponse.requestedAt())
                 .approvedAt(paymentResponse.approvedAt())
+                .canceledAt(null)
                 .build();
         paymentMapper.save(payment);
 

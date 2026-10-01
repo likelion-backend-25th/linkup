@@ -48,8 +48,18 @@
 
     <update id="updateCancel">
         UPDATE subscription
-        SET end_date = next_billing_at,
+        SET billing_key = NULL,
+        end_date = next_billing_at,
         status = "CANCELED",
+        next_billing_at = NULL
+        WHERE id = #{subscriptionId}
+    </update>
+
+    <update id="updateRemoved">
+        UPDATE subscription
+        SET billing_key = NULL,
+        end_date = CURRENT_TIMESTAMP,
+        status = "REMOVED",
         next_billing_at = NULL
         WHERE id = #{subscriptionId}
     </update>
@@ -75,6 +85,12 @@
 
     <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">
         SELECT <include refid="subscriptionColumns" />
+        FROM subscription as s
+        WHERE s.id = #{subscriptionId}
+    </select>
+
+    <select id="checkStartDate" resultType="java.time.LocalDateTime">
+        SELECT start_date
         FROM subscription as s
         WHERE s.id = #{subscriptionId}
     </select>

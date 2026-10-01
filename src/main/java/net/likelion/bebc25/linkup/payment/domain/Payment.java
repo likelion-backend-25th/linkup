@@ -25,4 +25,5 @@ public class Payment {
     private int totalAmount;
     private String requestedAt;
     private String approvedAt;
+    private String canceledAt;
 }

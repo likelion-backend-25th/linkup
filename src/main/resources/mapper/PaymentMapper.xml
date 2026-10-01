@@ -4,6 +4,21 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="net.likelion.bebc25.linkup.payment.mapper.PaymentMapper">
+    <sql id="paymentColumns">
+        id AS payment_id,
+        member_id,
+        subscription_id,
+        payment_key,
+        order_id,
+        order_name,
+        status,
+        method,
+        total_amount,
+        requested_at,
+        approved_at,
+        canceled_at
+    </sql>
+
     <insert id="save" useGeneratedKeys="true" keyProperty="paymentId">
         INSERT INTO payment (
         member_id,
@@ -15,7 +30,8 @@
         method,
         total_amount,
         requested_at,
-        approved_at )
+        approved_at,
+        canceled_at)
         VALUES (
         #{memberId},
         #{subscriptionId},
@@ -26,6 +42,23 @@
         #{method},
         #{totalAmount},
         #{requestedAt},
-        #{approvedAt} )
+        #{approvedAt},
+        #{canceledAt})
     </insert>
+
+    <select id="findBillingDate" resultType="String">
+        SELECT approved_at
+        FROM payment
+        WHERE subscription_id = #{subscriptionId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.payment.domain.Payment">
+        SELECT <include refid="paymentColumns" />
+        FROM payment
+        WHERE subscription_id = #{subscriptionId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
 </mapper>
