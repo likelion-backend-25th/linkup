@@ -8,7 +8,7 @@ public record AdminPaymentDetailResponse(
         Long paymentId,
 
         // 결제 일시
-        LocalDateTime paymentDate,
+        String paymentDate,
 
         // 구매자 닉네임
         String buyerNickname,
