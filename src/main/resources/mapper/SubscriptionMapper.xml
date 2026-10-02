@@ -9,7 +9,8 @@
         id AS subscription_id,
         creator_id,
         member_id,
-        customer_uid,
+        customer_key,
+        billing_key,
         price,
         start_date,
         end_date,
@@ -41,46 +42,63 @@
     </sql>
 
     <insert id="save" parameterType="Subscription" useGeneratedKeys="true" keyProperty="subscriptionId">
-        INSERT INTO subscription ( creator_id, member_id, customer_uid, price, status )
-        VALUES ( #{creatorId}, #{memberId}, #{customerUid}, #{price}, #{status} )
+        INSERT INTO subscription ( creator_id, member_id, customer_key, billing_key, price, status )
+        VALUES ( #{creatorId}, #{memberId}, #{customerKey}, #{billingKey}, #{price}, #{status} )
     </insert>
 
     <update id="updateCancel">
         UPDATE subscription
-        SET end_date = next_billing_at,
+        SET billing_key = NULL,
+        end_date = next_billing_at,
         status = "CANCELED",
         next_billing_at = NULL
         WHERE id = #{subscriptionId}
     </update>
 
-    <delete id="deleteExpirations">
-        DELETE FROM subscription
-        WHERE end_date &lt; NOW();
-    </delete>
+    <update id="updateRemoved">
+        UPDATE subscription
+        SET billing_key = NULL,
+        end_date = CURRENT_TIMESTAMP,
+        status = "REMOVED",
+        next_billing_at = NULL
+        WHERE id = #{subscriptionId}
+    </update>
 
-    <select id="findAll" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
-        FROM subscription
-    </select>
+    <update id="updateNextBillingAt">
+        UPDATE subscription
+        SET next_billing_at = (CURRENT_TIMESTAMP + INTERVAL 30 DAY)
+        WHERE id = #{subscriptionId}
+    </update>
 
-    <select id="findByCreatorId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
-        FROM subscription
-        WHERE creator_id = #{creatorId}
-        ORDER BY id DESC
-    </select>
+    <update id="deleteExpirations">
+        UPDATE subscription
+        SET status = "REMOVED",
+        next_billing_at = NULL
+        WHERE end_date &lt; NOW() AND status = "CANCELED";
+    </update>
 
-    <select id="findByMemberId" parameterType="long" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionResponse">
-        SELECT <include refid="subscriptionColumns" />
+    <select id="findByMemberIdAndCreatorId" resultType="string">
+        SELECT status
         FROM subscription
-        WHERE member_id = #{memberId}
-        ORDER BY id DESC
+        WHERE member_id = #{memberId} AND creator_id = #{creatorId}
     </select>
 
     <select id="findBySubscriptionId" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">
         SELECT <include refid="subscriptionColumns" />
         FROM subscription as s
         WHERE s.id = #{subscriptionId}
+    </select>
+
+    <select id="checkStartDate" resultType="java.time.LocalDateTime">
+        SELECT start_date
+        FROM subscription as s
+        WHERE s.id = #{subscriptionId}
+    </select>
+
+    <select id="findAutoPaymentRenewalList" resultType="net.likelion.bebc25.linkup.subscription.domain.Subscription">
+        SELECT <include refid="subscriptionColumns" />
+        FROM subscription as s
+        WHERE next_billing_at &lt; NOW() AND billing_key != NULL
     </select>
 
     <select id="findSubscriptionDetail" resultType="net.likelion.bebc25.linkup.subscription.dto.SubscriptionDetailResponse">
@@ -96,6 +114,7 @@
         JOIN member m ON m.id = s.creator_id
         <where>
             AND s.member_id = #{memberId}
+            AND s.status != "REMOVED"
             <if test="cursor != null">
                 AND s.id &lt; #{cursor}
             </if>
@@ -107,7 +126,7 @@
     <select id="countSubscribeCreator" resultType="int">
         SELECT COUNT(*) AS count
         FROM subscription
-        WHERE member_id = #{memberId}
+        WHERE member_id = #{memberId} AND status != "REMOVED"
     </select>
 
 </mapper>

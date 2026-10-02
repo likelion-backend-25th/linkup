@@ -38,8 +38,8 @@ public class PostLikeServiceImpl implements PostLikeService {
     }
 
     // 게시글이 존재하는지 확인하고 조회한다.
-    private Post getPostOrThrow(Long postId) {
-        Post post = postMapper.findById(postId);
+    private Post getPostOrThrow(Long postId, Long memberId) {
+        Post post = postMapper.findById(postId, memberId);
 
         if (post == null) {
             throw new ResponseStatusException(
@@ -53,7 +53,7 @@ public class PostLikeServiceImpl implements PostLikeService {
 
     // 구독자 전용 게시글은 작성자 또는 유효한 구독자만 좋아요할 수 있다.
     private void validatePostReadAccess(Long postId, Long memberId) {
-        Post post = getPostOrThrow(postId);
+        Post post = getPostOrThrow(postId, memberId);
 
         if (!post.isSubscriberOnly()) {
             return;

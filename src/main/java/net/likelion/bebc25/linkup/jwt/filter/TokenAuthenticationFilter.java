@@ -75,7 +75,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/api/actuator/health");
+        return path.equals("/api/actuator/health")
+                || path.equals("/api/v1/auth/refresh");
     }
 
     private String getAccessToken(String authorizationHeader) {

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,17 +22,19 @@ public class SubscriptionMapperTest {
     private SubscriptionMapper subscriptionMapper;
 
     @Test
-    @DisplayName("구독 등록 테스트")
+    @DisplayName("save 테스트")
     void saveTest() {
         Long creatorId = 5L;
         Long memberId = 10L;
-        String customerUid = "test_uid";
+        String customerKey = "test_customer_key";
+        String billingKey = "test_billing_key";
         int price = 4900;
 
         Subscription sub = Subscription.builder()
                 .creatorId(creatorId)
                 .memberId(memberId)
-                .customerUid(customerUid)
+                .customerKey(customerKey)
+                .billingKey(billingKey)
                 .price(price)
                 .build();
 
@@ -42,7 +45,8 @@ public class SubscriptionMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getCreatorId()).isEqualTo(creatorId);
         assertThat(result.getMemberId()).isEqualTo(memberId);
-        assertThat(result.getCustomerUid()).isEqualTo(customerUid);
+        assertThat(result.getCustomerKey()).isEqualTo(customerKey);
+        assertThat(result.getBillingKey()).isEqualTo(billingKey);
         assertThat(result.getPrice()).isEqualTo(price);
         System.out.println(result);
     }
@@ -61,6 +65,32 @@ public class SubscriptionMapperTest {
         System.out.println(result);
     }
 
+    @Test
+    @DisplayName("updateRemoved 테스트")
+    void updateRemovedTest() {
+        Long subId = 1L;
+
+        int resultValue = subscriptionMapper.updateRemoved(subId);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(subId);
+        assertThat(result.getStatus()).isEqualTo("REMOVED");
+        assertThat(result.getNextBillingAt()).isNull();
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("updateNextBillingAt 테스트")
+    void updateNextBillingAtTest() {
+        Long subId = 1L;
+
+        int resultValue = subscriptionMapper.updateNextBillingAt(subId);
+        assertThat(resultValue).isEqualTo(1);
+
+        Subscription result = subscriptionMapper.findBySubscriptionId(subId);
+        System.out.println(result.getNextBillingAt());
+    }
+
     // 이 테스트는 스케줄러랑 충돌이 나므로 왠만하면 하지 않는 걸 추천
     // 하고 싶다면 SubscriptionService에 deleteExpiredSubscriptions 메소드의
     // 스케줄러 어노테이션을 주석처리 할 것
@@ -71,47 +101,19 @@ public class SubscriptionMapperTest {
 //        assertThat(resultValue).isEqualTo(10);
 //
 //        Subscription result = subscriptionMapper.findBySubscriptionId(25L);
-//        assertThat(result).isNull();
+//        System.out.println(result);
+//        assertThat(result.getStatus()).isEqualTo("REMOVED");
 //    }
 
     @Test
-    @DisplayName("구독 상품 전체 조회 테스트")
-    void findAllTest() {
-        List<SubscriptionResponse> subList = subscriptionMapper.findAll();
+    @DisplayName("findByMemberIdAndCreatorId 테스트")
+    void findByMemberIdAndCreatorIdTest() {
+        Long creatorId = 5L;
+        Long memberId = 2L;
 
-//        for (SubscriptionResponse sub : subList) {
-//            System.out.println(sub.toString());
-//        }
+        String status = subscriptionMapper.findByMemberIdAndCreatorId(memberId, creatorId);
 
-        assertThat(subList).isNotNull();
-    }
-
-    @Test
-    @DisplayName("특정 크리에이터에 대한 구독 조회 테스트")
-    void findByCreatorId() {
-        Long targetCreatorId = 5L;
-
-        List<SubscriptionResponse> subList = subscriptionMapper.findByCreatorId(targetCreatorId);
-
-        assertThat(subList).isNotNull();
-        for (SubscriptionResponse sub : subList) {
-            assertThat(sub.creatorId()).isEqualTo(targetCreatorId);
-            System.out.println(sub.toString());
-        }
-    }
-
-    @Test
-    @DisplayName("특정 사용자가 구독하고 있는 상품 조회 테스트")
-    void findByMemberIdTest() {
-        Long targetMemberId = 1L;
-
-        List<SubscriptionResponse> subList = subscriptionMapper.findByMemberId(targetMemberId);
-
-        assertThat(subList).isNotNull();
-        for (SubscriptionResponse sub : subList) {
-            assertThat(sub.memberId()).isEqualTo(targetMemberId);
-            System.out.println(sub.toString());
-        }
+        assertThat(status).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -124,6 +126,26 @@ public class SubscriptionMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getSubscriptionId()).isEqualTo(targetId);
         System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("checkStartDate 테스트")
+    void checkStartDateTest() {
+        Long targetId = 1L;
+
+        LocalDateTime result = subscriptionMapper.checkStartDate(targetId);
+
+        System.out.println(result);
+    }
+
+    @Test
+    @DisplayName("findAutoPaymentRenewalList 테스트")
+    void findAutoPaymentRenewalListTest() {
+        List<Subscription> list = subscriptionMapper.findAutoPaymentRenewalList();
+
+        for(Subscription sub: list) {
+            System.out.println(sub);
+        }
     }
 
     @Test

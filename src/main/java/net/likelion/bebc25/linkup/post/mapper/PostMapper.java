@@ -11,10 +11,16 @@ public interface PostMapper {
     int insert(Post post);
 
     // 게시글 단 건 조회
-    Post findById(@Param("postId") Long postId);
+    Post findById(
+            @Param("postId") Long postId,
+            @Param("memberId") Long memberId
+    );
 
     // 게시글 상세 조회
-    PostDetailRow findDetailById(@Param("postId") Long postId);
+    PostDetailRow findDetailById(
+            @Param("postId") Long postId,
+            @Param("memberId") Long memberId
+    );
 
     // 게시글 삭제
     int deleteById(@Param("postId") Long postId);

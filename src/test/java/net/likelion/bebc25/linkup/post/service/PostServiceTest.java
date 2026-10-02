@@ -23,12 +23,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 
 @SpringBootTest
 @Transactional
@@ -37,10 +35,13 @@ class PostServiceTest {
 
     @Autowired
     private PostService postService;
+
     @Autowired
     private PostMapper postMapper;
+
     @Autowired
     private FileStorageService fileStorageService;
+
     @Autowired
     private PostImageMapper postImageMapper;
 
@@ -50,7 +51,8 @@ class PostServiceTest {
         // given
 
         // when
-        PostDetailResponse postDetailResponse = postService.getPostDetailById(2L, 1L);
+        PostDetailResponse postDetailResponse =
+                postService.getPostDetailById(2L, 1L);
 
         // then
         assertThat(postDetailResponse).isNotNull();
@@ -63,13 +65,16 @@ class PostServiceTest {
     public void getPostDetail2() {
         // given
 
-        // when
+        // when & then
         assertThatThrownBy(() ->
                 postService.getPostDetailById(12L, 1L)
         )
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        AssertionsForClassTypes.assertThat(exception.getStatusCode())
-                                .isEqualTo(HttpStatus.FORBIDDEN)
+                .isInstanceOfSatisfying(
+                        ResponseStatusException.class,
+                        exception ->
+                                AssertionsForClassTypes.assertThat(
+                                        exception.getStatusCode()
+                                ).isEqualTo(HttpStatus.FORBIDDEN)
                 );
     }
 
@@ -78,18 +83,21 @@ class PostServiceTest {
     void createPost1() throws IOException {
         // given
         Long memberId = 2L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", false);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
                 createImage("image2.png")
         );
-        // when
-        PostCreateResponse response = postService.createPost(memberId, request, images, null);
 
+        // when
+        PostCreateResponse response =
+                postService.createPost(memberId, request, images, null);
 
         // then: 게시글 저장 확인
-        Post savedPost = postMapper.findById(response.id());
+        Post savedPost =
+                postMapper.findById(response.id(), memberId);
 
         assertThat(savedPost).isNotNull();
         assertThat(savedPost.getMemberId()).isEqualTo(memberId);
@@ -117,23 +125,31 @@ class PostServiceTest {
     void createPost2() throws IOException {
         // given
         Long memberId = 5L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", false);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
                 createImage("image2.png")
         );
+
         MockMultipartFile file = createFile("test.pdf");
 
         // when & then
         assertThatThrownBy(() ->
                 postService.createPost(memberId, request, images, file)
         )
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
-                    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-                    assertThat(exception.getReason())
-                            .isEqualTo("첨부파일은 구독자 전용 게시글에만 업로드할 수 있습니다.");
-                });
+                .isInstanceOfSatisfying(
+                        ResponseStatusException.class,
+                        exception -> {
+                            assertThat(exception.getStatusCode())
+                                    .isEqualTo(HttpStatus.BAD_REQUEST);
+                            assertThat(exception.getReason())
+                                    .isEqualTo(
+                                            "첨부파일은 구독자 전용 게시글에만 업로드할 수 있습니다."
+                                    );
+                        }
+                );
     }
 
     @Test
@@ -141,23 +157,31 @@ class PostServiceTest {
     void createPost3() throws IOException {
         // given
         Long memberId = 2L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", false);
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", false);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
                 createImage("image2.png")
         );
+
         MockMultipartFile file = createFile("test.pdf");
 
         // when & then
         assertThatThrownBy(() ->
                 postService.createPost(memberId, request, images, file)
         )
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
-                    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-                    assertThat(exception.getReason())
-                            .isEqualTo("크리에이터만 첨부파일을 업로드할 수 있습니다.");
-                });
+                .isInstanceOfSatisfying(
+                        ResponseStatusException.class,
+                        exception -> {
+                            assertThat(exception.getStatusCode())
+                                    .isEqualTo(HttpStatus.FORBIDDEN);
+                            assertThat(exception.getReason())
+                                    .isEqualTo(
+                                            "크리에이터만 첨부파일을 업로드할 수 있습니다."
+                                    );
+                        }
+                );
     }
 
     @Test
@@ -165,19 +189,23 @@ class PostServiceTest {
     void createPost4() throws IOException {
         // given
         Long memberId = 5L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", true);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
                 createImage("image2.png")
         );
-        MockMultipartFile file = createFile("test.pdf");
-        // when
-        PostCreateResponse response = postService.createPost(memberId, request, images, file);
 
+        MockMultipartFile file = createFile("test.pdf");
+
+        // when
+        PostCreateResponse response =
+                postService.createPost(memberId, request, images, file);
 
         // then: 게시글 저장 확인
-        Post savedPost = postMapper.findById(response.id());
+        Post savedPost =
+                postMapper.findById(response.id(), memberId);
 
         assertThat(savedPost).isNotNull();
         assertThat(savedPost.getMemberId()).isEqualTo(memberId);
@@ -215,12 +243,13 @@ class PostServiceTest {
         postMapper.insert(post);
         Long postId = post.getId();
 
-        // 작성자가 삭제하는 경우
         // when
         postService.deletePost(1L, postId);
 
         // then
-        assertThat(postMapper.findById(postId)).isNull();
+        assertThat(
+                postMapper.findById(postId, 1L)
+        ).isNull();
     }
 
     @Test
@@ -236,15 +265,19 @@ class PostServiceTest {
         Long postId = post.getId();
 
         // when & then
-        // 작성자가 아닌 회원이 삭제하는 경우
         assertThatThrownBy(() ->
                 postService.deletePost(2L, postId)
         )
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        assertThat(exception.getStatusCode())
-                                .isEqualTo(HttpStatus.FORBIDDEN)
+                .isInstanceOfSatisfying(
+                        ResponseStatusException.class,
+                        exception ->
+                                assertThat(exception.getStatusCode())
+                                        .isEqualTo(HttpStatus.FORBIDDEN)
                 );
-        assertThat(postMapper.findById(postId)).isNotNull();
+
+        assertThat(
+                postMapper.findById(postId, 2L)
+        ).isNotNull();
     }
 
     @Test
@@ -252,7 +285,9 @@ class PostServiceTest {
     void updatePostTest1() throws IOException {
         // given
         Long memberId = 5L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
+
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", true);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
@@ -261,29 +296,62 @@ class PostServiceTest {
 
         MultipartFile file = createFile("test.pdf");
 
-        PostCreateResponse response = postService.createPost(memberId, request, images, file);
+        PostCreateResponse response =
+                postService.createPost(
+                        memberId,
+                        request,
+                        images,
+                        file
+                );
 
-        Post beforeUpdate = postMapper.findById(response.id());
+        Post beforeUpdate =
+                postMapper.findById(response.id(), memberId);
 
-        List<PostImage> existingImages = postImageMapper.findAllByPostId(response.id());
-        MultipartFile updateFile = createFile("test2.pdf");
-        List<PostImageUpdateRequest> postImageUpdateRequests = existingImages.stream()
-                .map(image -> new PostImageUpdateRequest(
-                        image.getId(),
-                        null
-                ))
-                .toList();
-        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 게시글", true, false, postImageUpdateRequests);
+        List<PostImage> existingImages =
+                postImageMapper.findAllByPostId(response.id());
+
+        MultipartFile updateFile =
+                createFile("test2.pdf");
+
+        List<PostImageUpdateRequest> postImageUpdateRequests =
+                existingImages.stream()
+                        .map(image ->
+                                new PostImageUpdateRequest(
+                                        image.getId(),
+                                        null
+                                )
+                        )
+                        .toList();
+
+        PostUpdateRequest updateRequest =
+                new PostUpdateRequest(
+                        "수정된 게시글",
+                        true,
+                        false,
+                        postImageUpdateRequests
+                );
 
         // when
-        postService.updatePost(response.id(), 5L, updateRequest, List.of(), updateFile);
+        postService.updatePost(
+                response.id(),
+                memberId,
+                updateRequest,
+                List.of(),
+                updateFile
+        );
 
         // then
-        Post updatedPost = postMapper.findById(response.id());
-        assertThat(updatedPost.getContent()).isEqualTo("수정된 게시글");
-        assertThat(updatedPost.getFileUrl()).isNotNull();
-        assertThat(updatedPost.getFileUrl()).isNotEqualTo(beforeUpdate.getFileUrl());
+        Post updatedPost =
+                postMapper.findById(response.id(), memberId);
 
+        assertThat(updatedPost.getContent())
+                .isEqualTo("수정된 게시글");
+
+        assertThat(updatedPost.getFileUrl())
+                .isNotNull();
+
+        assertThat(updatedPost.getFileUrl())
+                .isNotEqualTo(beforeUpdate.getFileUrl());
     }
 
     @Test
@@ -291,7 +359,9 @@ class PostServiceTest {
     void updatePostTest2() throws IOException {
         // given
         Long memberId = 5L;
-        PostCreateRequest request = new PostCreateRequest("테스트 게시글", true);
+
+        PostCreateRequest request =
+                new PostCreateRequest("테스트 게시글", true);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
@@ -304,31 +374,72 @@ class PostServiceTest {
 
         MultipartFile file = createFile("test.pdf");
 
-        PostCreateResponse response = postService.createPost(memberId, request, images, file);
+        PostCreateResponse response =
+                postService.createPost(
+                        memberId,
+                        request,
+                        images,
+                        file
+                );
 
-        List<PostImage> beforeImages = postImageMapper.findAllByPostId(response.id());
+        List<PostImage> beforeImages =
+                postImageMapper.findAllByPostId(response.id());
 
-        List<PostImageUpdateRequest> postImageUpdateRequests = List.of(
-                new PostImageUpdateRequest(beforeImages.getFirst().getId(), null),
-                new PostImageUpdateRequest(null, 0));
-        PostUpdateRequest updateRequest = new PostUpdateRequest("수정된 게시글", true, true, postImageUpdateRequests);
+        List<PostImageUpdateRequest> postImageUpdateRequests =
+                List.of(
+                        new PostImageUpdateRequest(
+                                beforeImages.getFirst().getId(),
+                                null
+                        ),
+                        new PostImageUpdateRequest(
+                                null,
+                                0
+                        )
+                );
+
+        PostUpdateRequest updateRequest =
+                new PostUpdateRequest(
+                        "수정된 게시글",
+                        true,
+                        true,
+                        postImageUpdateRequests
+                );
 
         // when
-        postService.updatePost(response.id(), 5L, updateRequest, newImages, null);
-        List<PostImage> afterImages = postImageMapper.findAllByPostId(response.id());
+        postService.updatePost(
+                response.id(),
+                memberId,
+                updateRequest,
+                newImages,
+                null
+        );
+
+        List<PostImage> afterImages =
+                postImageMapper.findAllByPostId(response.id());
 
         // then
-        Post updatedPost = postMapper.findById(response.id());
+        Post updatedPost =
+                postMapper.findById(response.id(), memberId);
+
         assertThat(updatedPost.getFileUrl()).isNull();
         assertThat(afterImages.getFirst().getImageOrder()).isEqualTo(1);
-        assertThat(afterImages.getFirst().getId()).isEqualTo(beforeImages.get(0).getId());
-        assertThat(afterImages.get(1)).isNotEqualTo(beforeImages.get(1).getId());
-        assertThat(afterImages.get(1).getImageUrl()).endsWith("jpg");
+        assertThat(afterImages.getFirst().getId())
+                .isEqualTo(beforeImages.get(0).getId());
+        assertThat(afterImages.get(1).getId())
+                .isNotEqualTo(beforeImages.get(1).getId());
+        assertThat(afterImages.get(1).getImageUrl())
+                .endsWith("jpg");
     }
 
     // 게시글 생성
-    private List<MultipartFile> createPost(Long memberId, String content, boolean subscriberOnly) throws IOException {
-        PostCreateRequest postCreateRequest = new PostCreateRequest(content, subscriberOnly);
+    private List<MultipartFile> createPost(
+            Long memberId,
+            String content,
+            boolean subscriberOnly
+    ) throws IOException {
+
+        PostCreateRequest postCreateRequest =
+                new PostCreateRequest(content, subscriberOnly);
 
         List<MultipartFile> images = List.of(
                 createImage("image1.png"),
@@ -337,22 +448,47 @@ class PostServiceTest {
 
         if (subscriberOnly) {
             MockMultipartFile file = createFile("test.pdf");
-            postService.createPost(memberId, postCreateRequest, images, file);
+
+            postService.createPost(
+                    memberId,
+                    postCreateRequest,
+                    images,
+                    file
+            );
         } else {
-            postService.createPost(memberId, postCreateRequest, images, null);
+            postService.createPost(
+                    memberId,
+                    postCreateRequest,
+                    images,
+                    null
+            );
         }
 
         return images;
     }
 
     // 이미지 생성
-    private MockMultipartFile createImage(String fileName) throws IOException {
-        BufferedImage image = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    private MockMultipartFile createImage(String fileName)
+            throws IOException {
 
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        BufferedImage image =
+                new BufferedImage(
+                        10,
+                        10,
+                        BufferedImage.TYPE_INT_RGB
+                );
+
+        ByteArrayOutputStream output =
+                new ByteArrayOutputStream();
+
         ImageIO.write(image, "png", output);
 
-        return new MockMultipartFile("images", fileName, "image/png", output.toByteArray());
+        return new MockMultipartFile(
+                "images",
+                fileName,
+                "image/png",
+                output.toByteArray()
+        );
     }
 
     // 파일 생성
@@ -361,7 +497,8 @@ class PostServiceTest {
                 "file",
                 fileName,
                 "application/pdf",
-                "test file content".getBytes(StandardCharsets.UTF_8)
+                "test file content"
+                        .getBytes(StandardCharsets.UTF_8)
         );
     }
 }

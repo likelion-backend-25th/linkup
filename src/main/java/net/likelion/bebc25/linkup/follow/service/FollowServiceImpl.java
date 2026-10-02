@@ -5,6 +5,7 @@ import net.likelion.bebc25.linkup.follow.dto.FollowMemberPageResponse;
 import net.likelion.bebc25.linkup.follow.dto.FollowMemberResponse;
 import net.likelion.bebc25.linkup.follow.dto.FollowResponse;
 import net.likelion.bebc25.linkup.follow.mapper.FollowMapper;
+import net.likelion.bebc25.linkup.member.block.mapper.BlockMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.List;
 public class FollowServiceImpl implements FollowService {
 
     private final FollowMapper followMapper;
+    private final BlockMapper blockMapper;
 
     // 팔로우
     @Override
@@ -24,6 +26,19 @@ public class FollowServiceImpl implements FollowService {
         // 자기 자신 팔로우 방지
         if (memberId.equals(targetId)) {
             throw new IllegalArgumentException("자기 자신을 팔로우할 수 없습니다.");
+        }
+
+        // 양방향 차단 여부 확인
+        boolean blockedByMe =
+                blockMapper.existsBlock(memberId, targetId) > 0;
+
+        boolean blockedByTarget =
+                blockMapper.existsBlock(targetId, memberId) > 0;
+
+        if (blockedByMe || blockedByTarget) {
+            throw new IllegalArgumentException(
+                    "차단 관계에서는 팔로우할 수 없습니다."
+            );
         }
 
         // 중복 팔로우 방지

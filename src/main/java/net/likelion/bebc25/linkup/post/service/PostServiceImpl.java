@@ -78,7 +78,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDetailResponse getPostDetailById(Long postId, Long memberId) {
-        PostDetailRow postDetailRow = getPostDetailRowOrThrow(postId);
+        PostDetailRow postDetailRow = getPostDetailRowOrThrow(postId, memberId);
         validatePostReadAccess(postDetailRow, memberId);
 
         // 상세 화면에 필요한 부가 정보를 함께 조회한다.
@@ -233,7 +233,7 @@ public class PostServiceImpl implements PostService {
 
     // 게시글 조회, 작성자 본인 확인
     private Post getOwnedPostOrThrow(Long postId, Long memberId) {
-        Post post = postMapper.findById(postId);
+        Post post = postMapper.findById(postId, memberId);
 
         if (post == null) {
             throw new ResponseStatusException(
@@ -463,8 +463,9 @@ public class PostServiceImpl implements PostService {
     }
 
     // 게시글 상세 정보를 조회하고 없으면 예외를 던진다.
-    private PostDetailRow getPostDetailRowOrThrow(Long postId) {
-        PostDetailRow postDetailRow = postMapper.findDetailById(postId);
+    private PostDetailRow getPostDetailRowOrThrow(Long postId, Long memberId) {
+        PostDetailRow postDetailRow =
+                postMapper.findDetailById(postId, memberId);
 
         if (postDetailRow == null) {
             throw new ResponseStatusException(
@@ -480,7 +481,9 @@ public class PostServiceImpl implements PostService {
     private void validatePostReadAccess(PostDetailRow postDetailRow, Long memberId) {
         Long authorId = postDetailRow.getMemberId();
 
-        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+        if (memberId != null
+                && !memberId.equals(authorId)
+                && blockMapper.existsBlock(memberId, authorId) > 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "게시글이 존재하지 않습니다."
@@ -491,11 +494,11 @@ public class PostServiceImpl implements PostService {
             return;
         }
 
-        if (memberId.equals(authorId)) {
+        if (memberId != null && memberId.equals(authorId)) {
             return;
         }
 
-        if (!postMapper.existsValidSubscription(memberId, authorId)) {
+        if (memberId == null || !postMapper.existsValidSubscription(memberId, authorId)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "구독하지 않은 게시글입니다."
@@ -615,10 +618,12 @@ public class PostServiceImpl implements PostService {
 
     // 작성자 본인 게시글에는 팔로우 버튼 상태가 필요 없으므로 false를 반환한다
     private boolean isFollowingAuthor(Long memberId, Long authorId) {
-        if (memberId.equals(authorId)) {
+        if (memberId == null || memberId.equals(authorId)) {
             return false;
         }
 
         return followMapper.isFollowing(memberId, authorId);
     }
 }
+
+

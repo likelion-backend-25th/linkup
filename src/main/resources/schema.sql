@@ -182,9 +182,15 @@ CREATE TABLE report (
     target_type VARCHAR(20) NOT NULL,
     reason TEXT NOT NULL,
     content TEXT NOT NULL,
+    reported_content TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'WAIT',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
+
+    KEY fk_report_member (member_id),
+    KEY fk_report_target_member (target_id),
+    KEY fk_report_post (post_id),
+    KEY fk_report_reply (reply_id),
 
     CONSTRAINT fk_report_member
         FOREIGN KEY (member_id)
@@ -194,16 +200,6 @@ CREATE TABLE report (
     CONSTRAINT fk_report_target_member
         FOREIGN KEY (target_id)
             REFERENCES member(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT fk_report_post
-        FOREIGN KEY (post_id)
-            REFERENCES post(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT fk_report_reply
-        FOREIGN KEY (reply_id)
-            REFERENCES reply(id)
             ON DELETE CASCADE
 );
 
@@ -263,7 +259,8 @@ CREATE TABLE subscription (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     creator_id BIGINT NOT NULL,
     member_id BIGINT NOT NULL,
-    customer_uid VARCHAR(100) NULL,
+    customer_key VARCHAR(100) NULL,
+    billing_key VARCHAR(255) NULL,
     price INT NOT NULL,
     start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_date DATETIME NULL DEFAULT NULL,
@@ -278,10 +275,7 @@ CREATE TABLE subscription (
     CONSTRAINT fk_subscription_member
         FOREIGN KEY (member_id)
             REFERENCES member(id)
-            ON DELETE CASCADE,
-
-    CONSTRAINT uk_subscription_creator_member
-        UNIQUE (creator_id, member_id)
+            ON DELETE CASCADE
 );
 
 
@@ -292,23 +286,25 @@ CREATE TABLE payment (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id BIGINT NOT NULL,
     subscription_id BIGINT NOT NULL,
-    imp_uid VARCHAR(100) NULL,
-    merchant_uid VARCHAR(100) NOT NULL UNIQUE,
-    amount INT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    pay_method VARCHAR(30) NOT NULL,
-    paid_at DATETIME NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    payment_key VARCHAR(255) NOT NULL,
+    order_id VARCHAR(100) NOT NULL,
+    order_name VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    method VARCHAR(20) NOT NULL,
+    total_amount INT NOT NULL,
+    requested_at VARCHAR(100) NOT NULL,
+    approved_at VARCHAR(100) NULL,
+    canceled_at VARCHAR(100) NULL,
 
-    CONSTRAINT fk_payment_member
-        FOREIGN KEY (member_id)
-            REFERENCES member(id)
-            ON DELETE CASCADE,
+     CONSTRAINT fk_payment_member
+         FOREIGN KEY (member_id)
+             REFERENCES member(id)
+             ON DELETE CASCADE,
 
-    CONSTRAINT fk_payment_subscription
-        FOREIGN KEY (subscription_id)
-            REFERENCES subscription(id)
-            ON DELETE CASCADE
+     CONSTRAINT fk_payment_subscription
+         FOREIGN KEY (subscription_id)
+             REFERENCES subscription(id)
+             ON DELETE CASCADE
 );
 
 
@@ -317,3 +313,9 @@ UPDATE member
 SET role = 'ROLE_ADMIN',
     updated_at = NOW()
 WHERE id = 51;
+
+
+#
+# UPDATE member
+# SET role = 'ROLE_ADMIN'
+# WHERE email = '본인 이메일';

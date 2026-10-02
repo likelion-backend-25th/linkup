@@ -28,7 +28,7 @@ public class ReplyController {
             @RequestParam(defaultValue = "10") @Min(1) @Max(20) int size,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = userDetails.getId();
+        Long memberId = userDetails != null ? userDetails.getId() : null;
         ReplyPageResponse response =
                 replyService.getReplies(postId, memberId, cursor, size);
 
@@ -53,7 +53,7 @@ public class ReplyController {
             @PathVariable Long replyId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
         replyService.deleteReply(postId, memberId, replyId);
 
         return ResponseEntity.noContent().build();
@@ -66,7 +66,7 @@ public class ReplyController {
             @RequestBody @Valid ReplyUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
         replyService.updateReply(postId, memberId, replyId, request);
 
         return  ResponseEntity.noContent().build();

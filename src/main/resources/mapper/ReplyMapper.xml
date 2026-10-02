@@ -22,12 +22,16 @@
         JOIN member m ON r.member_id = m.id
         <where>
             AND r.post_id = #{postId}
-            AND NOT EXISTS (
+
+            <if test="memberId != null">
+                AND NOT EXISTS (
                 SELECT 1
                 FROM block b
                 WHERE b.member_id = #{memberId}
                 AND b.blocked_id = r.member_id
-            )
+                )
+            </if>
+
             <if test="cursor != null">
                 AND r.id &gt; #{cursor}
             </if>

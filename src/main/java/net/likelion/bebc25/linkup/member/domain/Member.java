@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Member {
 
     private Long id;
@@ -23,12 +24,12 @@ public class Member {
 
     private String role;
 
-    private int warning_count;
-    private LocalDateTime writing_restricted_time;
+    private int warningCount;
+    private LocalDateTime writingRestrictedTime;
 
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    private int following_count;
-    private int follower_count;
+    private int followingCount;
+    private int followerCount;
 }

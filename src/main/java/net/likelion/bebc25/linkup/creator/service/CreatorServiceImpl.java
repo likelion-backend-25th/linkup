@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import net.likelion.bebc25.linkup.creator.dto.PagingSubscriberListResponse;
 import net.likelion.bebc25.linkup.creator.dto.SubscriberResponse;
 import net.likelion.bebc25.linkup.creator.mapper.CreatorMapper;
-import net.likelion.bebc25.linkup.subscription.dto.PagingSubListResponse;
-import net.likelion.bebc25.linkup.subscription.dto.SubscribeCreatorListResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
+import net.likelion.bebc25.linkup.member.domain.Member;
+import net.likelion.bebc25.linkup.member.mapper.MemberMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +16,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CreatorServiceImpl implements CreatorService{
     private final CreatorMapper creatorMapper;
+    private final MemberMapper memberMapper;
 
     @Override
     public PagingSubscriberListResponse getSubscriberList(
@@ -26,6 +26,15 @@ public class CreatorServiceImpl implements CreatorService{
                 = creatorMapper.findSubscriberList(creatorId, cursor, size + 1);
         int subscriberCount = creatorMapper.countSubscriber(creatorId);
         return toPagingSubscriberListResponse(sublists, subscriberCount, size);
+    }
+
+    @Override
+    @Transactional
+    public void applyCreator(Long memberId) {
+        Member member = memberMapper.findById(memberId);
+        if (member.getFollowerCount() >= 10 && !member.getRole().equals("ROLE_CREATOR")) {
+            memberMapper.updateRoleCreator(memberId);
+        }
     }
 
     private PagingSubscriberListResponse toPagingSubscriberListResponse(

@@ -2,6 +2,8 @@ package net.likelion.bebc25.linkup.creator.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.Max;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -42,5 +45,21 @@ public class CreatorController {
         PagingSubscriberListResponse responses
                 = creatorService.getSubscriberList(userDetails.getId(), cursor, size);
         return ResponseEntity.ok(responses);
+    }
+
+    @Operation(
+            summary = "사용자 크리에이터 승인",
+            description = "사용자의 크리에이터 신청을 승인한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "크리에이터 승인 완료")
+    })
+    @PostMapping
+    public ResponseEntity<Void> applyCreator(
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        creatorService.applyCreator(userDetails.getId());
+        return ResponseEntity.noContent().build();
     }
 }

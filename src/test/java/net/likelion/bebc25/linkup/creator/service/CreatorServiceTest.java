@@ -32,11 +32,11 @@ public class CreatorServiceTest {
         // then
         assertThat(response.subscriberList())
                 .extracting(SubscriberResponse::subscriptionId)
-                .containsExactly(4L, 3L, 2L);
+                .containsExactly(5L, 4L, 3L);
 
-        assertThat(response.subscriberCount()).isEqualTo(4);
+        assertThat(response.subscriberCount()).isEqualTo(5);
         assertThat(response.hasNext()).isTrue();
-        assertThat(response.nextCursor()).isEqualTo(2L);
+        assertThat(response.nextCursor()).isEqualTo(3L);
 
 
         // 남은 게시글 수가 요청 개수와 같거나 적으면 다음 페이지는 없음

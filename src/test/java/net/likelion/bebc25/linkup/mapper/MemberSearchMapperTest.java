@@ -1,8 +1,8 @@
 package net.likelion.bebc25.linkup.mapper;
 
 import net.likelion.bebc25.linkup.search.dto.MemberSearchResponse;
-import net.likelion.bebc25.linkup.search.dto.UserSearchFilter;
-import net.likelion.bebc25.linkup.search.mapper.SearchMapper;
+import net.likelion.bebc25.linkup.search.dto.SearchFilter;
+import net.likelion.bebc25.linkup.search.mapper.MemberSearchMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
@@ -15,19 +15,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class SearchMapperTest {
+class MemberSearchMapperTest {
 
     @Autowired
-    private SearchMapper searchMapper;
+    private MemberSearchMapper membersearchMapper;
 
+    // 사용자 검색 Test
     @Test
     @DisplayName("닉네임으로 회원을 검색한다")
     void searchMembersByName() {
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
+                membersearchMapper.searchMembers(
                         "김민준",
-                        UserSearchFilter.ALL,
+                        SearchFilter.ALL,
                         null,
                         null,
                         20
@@ -43,9 +44,9 @@ class SearchMapperTest {
     void searchMembersByUniqueId() {
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
+                membersearchMapper.searchMembers(
                         "minjun.frames",
-                        UserSearchFilter.ALL,
+                        SearchFilter.ALL,
                         null,
                         null,
                         20
@@ -63,9 +64,9 @@ class SearchMapperTest {
         Long memberId = 1L;
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
-                        "",
-                        UserSearchFilter.ALL,
+                membersearchMapper.searchMembers(
+                        "문시우",
+                        SearchFilter.ALL,
                         memberId,
                         null,
                         20
@@ -80,12 +81,12 @@ class SearchMapperTest {
     @DisplayName("내가 팔로우한 사용자만 검색한다")
     void searchFollowingMembers() {
 
-        Long memberId = 10L;
+        Long memberId = 1L;
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
-                        "",
-                        UserSearchFilter.FOLLOWING,
+                membersearchMapper.searchMembers(
+                        "n",
+                        SearchFilter.FOLLOWING,
                         memberId,
                         null,
                         20
@@ -94,7 +95,7 @@ class SearchMapperTest {
         assertThat(result)
                 .extracting(MemberSearchResponse::id)
                 .containsExactlyInAnyOrder(
-                        11L, 12L, 13L, 14L, 62L, 75L
+                        80L, 69L, 67L, 56L, 54L, 15L, 5L, 4L, 3L, 2L
                 );
     }
 
@@ -105,9 +106,9 @@ class SearchMapperTest {
         Long memberId = 2L;
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
-                        "",
-                        UserSearchFilter.SUBSCRIBING,
+                membersearchMapper.searchMembers(
+                        "우",
+                        SearchFilter.SUBSCRIBING,
                         memberId,
                         null,
                         20
@@ -123,15 +124,17 @@ class SearchMapperTest {
     void searchMembersWithCursor() {
 
         List<MemberSearchResponse> result =
-                searchMapper.searchMembers(
+                membersearchMapper.searchMembers(
                         "",
-                        UserSearchFilter.ALL,
+                        SearchFilter.ALL,
                         null,
                         20L,
                         20
                 );
 
         assertThat(result)
+                .isNotEmpty()
                 .allMatch(member -> member.id() < 20L);
     }
+
 }

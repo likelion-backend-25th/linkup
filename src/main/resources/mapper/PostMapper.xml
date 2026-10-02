@@ -11,28 +11,56 @@
     </insert>
 
     <!-- 게시글 단 건 조회 -->
-    <select id="findById" parameterType="long" resultType="Post">
-        SELECT id, member_id, content, file_url, like_count, subscriber_only, created_at, updated_at
-        FROM post
-        WHERE id = #{postId}
+    <select id="findById" resultType="Post">
+        SELECT
+        p.id,
+        p.member_id,
+        p.content,
+        p.file_url,
+        p.like_count,
+        p.subscriber_only,
+        p.created_at,
+        p.updated_at
+        FROM post p
+        WHERE p.id = #{postId}
+        AND NOT EXISTS (
+        SELECT 1
+        FROM block b
+        WHERE
+        (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
+        OR
+        (b.member_id = p.member_id AND b.blocked_id = #{memberId})
+        )
     </select>
 
     <!-- 게시글 상세 조회 -->
-    <select id="findDetailById" parameterType="long" resultType="PostDetailRow">
+    <!-- 게시글 상세 조회 -->
+    <select id="findDetailById" resultType="PostDetailRow">
         SELECT
-        p.id        AS id,
-        m.id        AS member_id,
-        name,
-        unique_id,
-        profile_image,
-        content,
-        file_url,
-        like_count,
-        subscriber_only,
-        p.created_at   AS created_at,
-        p.updated_at   AS updated_at
-        FROM post p JOIN member m ON p.member_id = m.id
+        p.id AS id,
+        m.id AS member_id,
+        m.name,
+        m.unique_id,
+        m.profile_image,
+        p.content,
+        p.file_url,
+        p.like_count,
+        p.subscriber_only,
+        p.created_at AS created_at,
+        p.updated_at AS updated_at
+        FROM post p
+        JOIN member m ON p.member_id = m.id
         WHERE p.id = #{postId}
+        <if test="memberId != null">
+            AND NOT EXISTS (
+            SELECT 1
+            FROM block b
+            WHERE
+            (b.member_id = #{memberId} AND b.blocked_id = p.member_id)
+            OR
+            (b.member_id = p.member_id AND b.blocked_id = #{memberId})
+            )
+        </if>
     </select>
 
     <!-- 게시글 삭제 -->
@@ -70,7 +98,8 @@
         SELECT 1
         FROM subscription
         WHERE member_id = #{memberId} AND creator_id = #{creatorId}
-        AND status = 'ACTIVE' AND end_date > CURRENT_TIMESTAMP
+        AND status = 'ACTIVE'
+        AND (end_date IS NULL OR end_date > CURRENT_TIMESTAMP)
         )
     </select>
 </mapper>

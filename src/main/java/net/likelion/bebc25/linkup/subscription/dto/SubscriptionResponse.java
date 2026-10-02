@@ -6,7 +6,7 @@ public record SubscriptionResponse(
         Long subscriptionId,
         Long creatorId,
         Long memberId,
-        String customerUid,
+        String customerKey,
         int price,
         LocalDateTime startDate,
         LocalDateTime endDate,

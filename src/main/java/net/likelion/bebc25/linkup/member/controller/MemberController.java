@@ -1,10 +1,7 @@
 package net.likelion.bebc25.linkup.member.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.likelion.bebc25.linkup.member.dto.BlockedMemberResponseDto;
-import net.likelion.bebc25.linkup.member.dto.MemberDto;
-import net.likelion.bebc25.linkup.member.dto.MemberResponseDto;
-import net.likelion.bebc25.linkup.member.dto.MemberUpdateRequest;
+import net.likelion.bebc25.linkup.member.dto.*;
 import net.likelion.bebc25.linkup.member.service.CustomUserDetails;
 import net.likelion.bebc25.linkup.member.service.MemberService;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +38,15 @@ public class MemberController {
 
     @GetMapping("/{memberId}")
     public ResponseEntity<MemberResponseDto> getMemberProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long memberId
     ) {
+        Long loginId = null;
+        if (userDetails != null) {
+            loginId = userDetails.getId();
+        }
         return ResponseEntity.ok(
-                memberService.getMemberProfile(memberId)
+                memberService.getMemberProfile(loginId, memberId)
         );
     }
 
@@ -74,6 +76,15 @@ public class MemberController {
     ) {
         return ResponseEntity.ok(
                 memberService.getBlockedMembers(userDetails.getId())
+        );
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<RecommendedMemberResponseDto>> getRecommendedMembers(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                memberService.getRecommendedMembers(userDetails.getId())
         );
     }
 }

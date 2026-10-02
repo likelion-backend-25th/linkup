@@ -81,7 +81,9 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     private ReplyResponse withLikedByMe(ReplyResponse reply, Long memberId) {
-        boolean likedByMe = replyLikeMapper.existsByReplyIdAndMemberId(reply.id(), memberId);
+        boolean likedByMe = memberId != null
+                && replyLikeMapper.existsByReplyIdAndMemberId(reply.id(), memberId);
+
 
         return new ReplyResponse(
                 reply.id(),
@@ -98,8 +100,8 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     // 게시글이 존재하는지 확인하고 조회한다.
-    private Post getPostOrThrow(Long postId) {
-        Post post = postMapper.findById(postId);
+    private Post getPostOrThrow(Long postId, Long memberId) {
+        Post post = postMapper.findById(postId, memberId);
 
         if (post == null) {
             throw new ResponseStatusException(
@@ -113,10 +115,12 @@ public class ReplyServiceImpl implements ReplyService {
 
     // 구독자 전용 게시글은 작성자 또는 유효한 구독자만 댓글을 조회/작성할 수 있다.
     private void validatePostReadAccess(Long postId, Long memberId) {
-        Post post = getPostOrThrow(postId);
+        Post post = getPostOrThrow(postId, memberId);
         Long authorId = post.getMemberId();
 
-        if (!memberId.equals(authorId) && blockMapper.existsBlock(memberId, authorId) > 0) {
+        if (memberId != null
+                && !memberId.equals(authorId)
+                && blockMapper.existsBlock(memberId, authorId) > 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "게시글이 존재하지 않습니다."
@@ -127,7 +131,7 @@ public class ReplyServiceImpl implements ReplyService {
             return;
         }
 
-        if (memberId.equals(authorId)) {
+        if (memberId != null && memberId.equals(authorId)) {
             return;
         }
 
@@ -154,7 +158,7 @@ public class ReplyServiceImpl implements ReplyService {
     // 게시글 작성자 또는 댓글 작성자만 댓글을 삭제할 수 있다.
     private void validateReplyDeletePermission(Long postId, Long memberId, Long replyId) {
         Reply reply = getReplyInPostOrThrow(postId, replyId);
-        Post post = getPostOrThrow(postId);
+        Post post = getPostOrThrow(postId, memberId);
 
         if (post.getMemberId().equals(memberId) || reply.getMemberId().equals(memberId)) {
             return;

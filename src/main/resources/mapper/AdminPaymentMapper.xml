@@ -8,27 +8,27 @@
     <!-- 결제 목록 조회용 공통 컬럼 -->
     <sql id="paymentListColumns">
         p.id AS payment_id,
-        p.paid_at AS payment_date,
+        p.approved_at AS payment_date,
         seller.name AS seller_nickname,
         buyer.name AS buyer_nickname,
         buyer.unique_id AS buyer_id,
-        p.amount AS amount,
+        p.total_amount AS amount,
         p.status AS payment_status
     </sql>
 
     <!-- 결제 상세 조회용 공통 컬럼 -->
     <sql id="paymentDetailColumns">
         p.id AS payment_id,
-        p.paid_at AS payment_date,
+        p.approved_at AS payment_date,
 
         buyer.name AS buyer_nickname,
         buyer.unique_id AS buyer_id,
 
-        p.amount AS amount,
+        p.total_amount AS amount,
         p.status AS payment_status,
-        p.pay_method AS payment_method,
-        p.merchant_uid AS merchant_uid,
-        p.imp_uid AS imp_uid,
+        p.method AS payment_method,
+        p.order_id AS order_id,
+        p.payment_key AS payment_key,
 
         seller.name AS seller_nickname,
         seller.unique_id AS seller_id,
@@ -52,15 +52,15 @@
 
         <!-- 구매자 -->
         INNER JOIN member buyer
-        ON p.member_id = buyer.id
+            ON p.member_id = buyer.id
 
         <!-- 결제와 연결된 구독 -->
         INNER JOIN subscription s
-        ON p.subscription_id = s.id
+            ON p.subscription_id = s.id
 
         <!-- 구독의 크리에이터 = 판매자 -->
         INNER JOIN member seller
-        ON s.creator_id = seller.id
+            ON s.creator_id = seller.id
 
         <where>
 
@@ -79,17 +79,17 @@
 
             <!-- 조회 시작 날짜 -->
             <if test="startDate != null">
-                AND p.paid_at &gt;= #{startDate}
+                AND p.approved_at &gt;= #{startDate}
             </if>
 
             <!-- 조회 종료 날짜 -->
             <if test="endDate != null">
-                AND p.paid_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+                AND p.approved_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
 
         </where>
 
-        ORDER BY p.paid_at DESC
+        ORDER BY p.approved_at DESC
 
         LIMIT #{size}
         OFFSET #{offset}
@@ -135,12 +135,12 @@
 
             <!-- 조회 시작 날짜 -->
             <if test="startDate != null">
-                AND p.paid_at &gt;= #{startDate}
+                AND p.approved_at &gt;= #{startDate}
             </if>
 
             <!-- 조회 종료 날짜 -->
             <if test="endDate != null">
-                AND p.paid_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+                AND p.approved_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
 
         </where>

@@ -16,8 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/subscriptions")
@@ -84,22 +82,55 @@ public class SubscriptionController {
     }
 
     @Operation(
-            summary = "구독 해지",
-            description = "구독 id 값을 사용하여 구독을 해지한다"
+            summary = "구독 시작일 검증",
+            description = "구독 id 값을 사용하여 구독 시작일을 검증한다"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "구독 해지 성공")
+            @ApiResponse(responseCode = "200", description = "구독 시작일 검증 성공")
     })
-    @PostMapping("/{id}")
-    public ResponseEntity<Void> cancelSubscription(
+    @GetMapping("/cancel/{id}")
+    public ResponseEntity<CheckBillingDateResponse> checkStartDate(
             @Parameter(description = "로그인 회원")
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "구독 내역 ID", example = "1")
             @PathVariable("id") Long subscriptionId
     ) {
-        subscriptionService.cancelSubscription(subscriptionId);
-//        SubscriptionDetailResponse response = subscriptionService.getSubscriptionDetail(subscriptionId);
-//        return ResponseEntity.ok(response);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(subscriptionService.checkBillingDate(subscriptionId));
+    }
+
+    @Operation(
+            summary = "구독 해지",
+            description = "구독 id 값을 사용하여 구독을 해지한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "구독 해지 성공")
+    })
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<CancelSubscriptionResponse> cancelSubscription(
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "구독 내역 ID", example = "1")
+            @PathVariable("id") Long subscriptionId
+    ) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(subscriptionService.cancelSubscription(subscriptionId));
+    }
+
+    @Operation(
+            summary = "구독 환불",
+            description = "구독 id 값을 사용하여 구독을 환불한다"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "구독 환불 성공")
+    })
+    @PostMapping("/cancel/{id}/refund")
+    public ResponseEntity<RefundSubscriptionResponse> refundSubscription(
+            @Parameter(description = "로그인 회원")
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "구독 내역 ID", example = "1")
+            @PathVariable("id") Long subscriptionId
+    ) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(subscriptionService.refundSubscription(userDetails.getId(), subscriptionId));
     }
 }

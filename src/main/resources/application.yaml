@@ -43,7 +43,7 @@ spring:
             scope:
               - profile
               - email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
             client-name: Google
 
         provider:
@@ -105,3 +105,8 @@ cloud:
 
 app:
   frontend-url: ${FRONTEND_URL}
+
+toss:
+  payments:
+    secret-key: ${TOSS_SECRET_KEY}
+    api-url: "https://api.tosspayments.com"
