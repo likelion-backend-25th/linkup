@@ -146,8 +146,8 @@ class AdminPaymentMapperTest {
         // then
         assertThat(payments).isNotNull();
         for(AdminPaymentResponse payment : payments){
-            assertThat(payment.paymentDate().toLocalDate())
-                    .isBetween(startDate, endDate);
+            assertThat(payment.paymentDate())
+                    .isBetween(startDate.toString(), endDate.toString());
         }
     }
 }
