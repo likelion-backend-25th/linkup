@@ -14,6 +14,8 @@
 
 ## [ERD 데이터그램](docs/02_design/04_erd.md)
 
+## [REST API 명세서](docs/02_design/05_api_specification.md)
+
 ## [트러블 슈팅](docs/03_reports/troubleshooting.md)
 
 ## 구성원
