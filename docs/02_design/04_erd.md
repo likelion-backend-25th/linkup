@@ -186,20 +186,20 @@ erDiagram
 ## 1.2 테이블별 상세 컬럼 명세
 
 ### 1.2.1 member (회원)
-    | 컬럼명                      | 데이터 타입       | 제약 조건                                                 | 설명                                                |
-| ------------------------ | ------------ | ----------------------------------------------------- | ------------------------------------------------- |
-| id                       | BIGINT       | PK, NOT NULL, AUTO_INCREMENT                          | 회원 고유 식별자                                         |
-| email                    | VARCHAR(100) | UNIQUE, NOT NULL                                      | 회원 이메일                                            |
-| password                 | VARCHAR(255) | NULL                                                  | 암호화된 비밀번호                                         |
-| name                     | VARCHAR(50)  | NOT NULL                                              | 회원 이름                                             |
-| unique_id                | VARCHAR(30)  | UNIQUE, NOT NULL                                      | 사용자 고유 아이디                                        |
-| profile_image            | VARCHAR(255) | NULL                                                  | 프로필 이미지 URL                                       |
-| introduction             | TEXT         | NULL                                                  | 회원 소개                                             |
-| role                     | VARCHAR(20)  | NOT NULL, DEFAULT 'ROLE_USER'                         | 회원 권한                                             |
-| warning_count            | INT          | NOT NULL, DEFAULT 0                                   | 경고 횟수                                             |
-| writing_restricted_until | DATETIME     | NULL                                                  | 글쓰기 제한 종료 시각                                      |
-| created_at               | DATETIME     | DEFAULT CURRENT_TIMESTAMP                             | 회원 가입 일시                                          |
-| updated_at               | DATETIME     | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 회원 정보 수정 일시                                       |
+| 컬럼명 | 데이터 타입 | 제약 조건 | 설명 |
+| --- | --- | --- | --- |
+| id | BIGINT | PK, NOT NULL, AUTO_INCREMENT | 회원 고유 식별자 |
+| email | VARCHAR(100) | UNIQUE, NOT NULL | 회원 이메일 |
+| password | VARCHAR(255) | NULL | 암호화된 비밀번호 |
+| name | VARCHAR(50) | NOT NULL | 회원 이름 |
+| unique_id | VARCHAR(30) | UNIQUE, NOT NULL | 사용자 고유 아이디 |
+| profile_image | VARCHAR(255) | NULL | 프로필 이미지 URL |
+| introduction | TEXT | NULL | 회원 소개 |
+| role | VARCHAR(20) | NOT NULL, DEFAULT 'ROLE_USER' | 회원 권한 |
+| warning_count | INT | NOT NULL, DEFAULT 0 | 경고 횟수 |
+| writing_restricted_until | DATETIME | NULL | 글쓰기 제한 종료 시각 |
+| created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 회원 가입 일시 |
+| updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP | 회원 정보 수정 일시 |
 
 
 ### 1.2.2 post (게시글)
