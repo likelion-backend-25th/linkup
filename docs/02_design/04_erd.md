@@ -1,29 +1,28 @@
-# 1. 데이터베이스 모델링 및 ERD 명세서 (LinkUp SNS)
+# 데이터베이스 모델링 및 ERD 명세서 (LinkUp SNS)
 
 ## 목차
 
-- [1. 데이터베이스 모델링 및 ERD 명세서 (LinkUp SNS)](#1-데이터베이스-모델링-및-erd-명세서-linkup-sns)
-- [1.1 엔티티 관계 다이어그램 (ERD)](#11-엔티티-관계-다이어그램-erd)
-- [1.2 테이블별 상세 컬럼 명세](#12-테이블별-상세-컬럼-명세)
-  - [1.2.1 member (회원)](#121-member-회원)
-  - [1.2.2 post (게시글)](#122-post-게시글)
-  - [1.2.3 post_image (게시글 이미지)](#123-post_image-게시글-이미지)
-  - [1.2.4 post_like (게시글 좋아요)](#124-post_like-게시글-좋아요)
-  - [1.2.5 reply (댓글)](#125-reply-댓글)
-  - [1.2.6 reply_like (댓글 좋아요)](#126-reply_like-댓글-좋아요)
-  - [1.2.7 block (차단)](#127-block-차단)
-  - [1.2.8 report (신고)](#128-report-신고)
-  - [1.2.9 follow (팔로우)](#129-follow-팔로우)
-  - [1.2.10 subscription (구독)](#1210-subscription-구독)
-  - [1.2.11 payment (결제)](#1211-payment-결제)
+- [1 엔티티 관계 다이어그램 (ERD)](#1-엔티티-관계-다이어그램-erd)
+- [2 테이블별 상세 컬럼 명세](#2-테이블별-상세-컬럼-명세)
+  - [2.1 member (회원)](#21-member-회원)
+  - [2.2 post (게시글)](#22-post-게시글)
+  - [2.3 post_image (게시글 이미지)](#23-post_image-게시글-이미지)
+  - [2.4 post_like (게시글 좋아요)](#24-post_like-게시글-좋아요)
+  - [2.5 reply (댓글)](#25-reply-게시글-댓글)
+  - [2.6 reply_like (댓글 좋아요)](#26-reply_like-댓글-좋아요)
+  - [2.7 block (차단)](#27-block-회원-차단)
+  - [2.8 report (신고)](#28-report-신고)
+  - [2.9 follow (팔로우)](#29-follow-회원-팔로우)
+  - [2.10 subscription (구독)](#210-subscription-사용자-정기-구독)
+  - [2.11 payment (결제)](#211-payment-결제)
 
 ---
 
-## 1.1 엔티티 관계 다이어그램 (ERD)
+# 1. 엔티티 관계 다이어그램 (ERD)
 
 LinkUp SNS 서비스의 회원, 게시글, 댓글, 좋아요, 팔로우, 차단, 신고 및 구독과 결제 기능을 구성하는 11개 핵심 테이블의 전체 구조도.
 
-# LinkUp ERD
+## LinkUp ERD
 
 ```mermaid
 erDiagram
@@ -183,9 +182,9 @@ erDiagram
 ```
 ---
 
-## 1.2 테이블별 상세 컬럼 명세
+# 2. 테이블별 상세 컬럼 명세
 
-### 1.2.1 member (회원)
+## 2.1 member (회원)
 | 컬럼명 | 데이터 타입 | 제약 조건 | 설명 |
 | --- | --- | --- | --- |
 | id | BIGINT | PK, NOT NULL, AUTO_INCREMENT | 회원 고유 식별자 |
@@ -202,7 +201,7 @@ erDiagram
 | updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP | 회원 정보 수정 일시 |
 
 
-### 1.2.2 post (게시글)
+## 2.2 post (게시글)
 | 컬럼명             | 데이터 타입       | 제약 조건                                                 | 설명            |
 | --------------- | ------------ | ----------------------------------------------------- | ------------- |
 | id              | BIGINT       | PK, NOT NULL, AUTO_INCREMENT                          | 게시글 고유 식별자    |
@@ -215,7 +214,7 @@ erDiagram
 | updated_at      | DATETIME     | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 게시글 수정 일시     |
 
 
-### 1.2.3 post_image (게시글 이미지)
+## 2.3 post_image (게시글 이미지)
 | 컬럼명         | 데이터 타입       | 제약 조건                        | 설명          |
 | ----------- | ------------ | ---------------------------- | ----------- |
 | id          | BIGINT       | PK, NOT NULL, AUTO_INCREMENT | 이미지 고유 식별자  |
@@ -225,7 +224,7 @@ erDiagram
 | created_at  | DATETIME     | DEFAULT CURRENT_TIMESTAMP    | 이미지 등록 일시   |
 
 
-### 1.2.4 post_like (게시글 좋아요)
+## 2.4 post_like (게시글 좋아요)
 | 컬럼명        | 데이터 타입   | 제약 조건                        | 설명            |
 | ---------- | -------- | ---------------------------- | ------------- |
 | id         | BIGINT   | PK, NOT NULL, AUTO_INCREMENT | 좋아요 고유 식별자    |
@@ -236,7 +235,7 @@ erDiagram
 - 동일 회원이 동일 게시글에 중복으로 좋아요를 등록하지 못하도록 제한한다.
 
 
-### 1.2.5 reply (게시글 댓글)
+## 2.5 reply (게시글 댓글)
 | 컬럼명        | 데이터 타입   | 제약 조건                                                 | 설명             |
 | ---------- | -------- | ----------------------------------------------------- | -------------- |
 | id         | BIGINT   | PK, NOT NULL, AUTO_INCREMENT                          | 댓글 고유 식별자      |
@@ -248,7 +247,7 @@ erDiagram
 | updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 댓글 수정 일시       |
 
 
-### 1.2.6 reply_like (댓글 좋아요)
+## 2.6 reply_like (댓글 좋아요)
 | 컬럼명        | 데이터 타입   | 제약 조건                        | 설명            |
 | ---------- | -------- | ---------------------------- | ------------- |
 | id         | BIGINT   | PK, NOT NULL, AUTO_INCREMENT | 댓글 좋아요 고유 식별자 |
@@ -259,7 +258,7 @@ erDiagram
 - 동일 회원이 동일 댓글에 중복으로 좋아요를 등록하지 못하도록 제한한다.
 
 
-### 1.2.7 block (회원 차단)
+## 2.7 block (회원 차단)
 | 컬럼명        | 데이터 타입   | 제약 조건                        | 설명            |
 | ---------- | -------- | ---------------------------- | ------------- |
 | id         | BIGINT   | PK, NOT NULL, AUTO_INCREMENT | 차단 고유 식별자     |
@@ -270,7 +269,7 @@ erDiagram
 - 동일 회원을 중복으로 차단하지 못하도록 제한한다.
 
 
-### 1.2.8 report (신고)
+## 2.8 report (신고)
 | 컬럼명         | 데이터 타입      | 제약 조건                        | 설명           |
 | ----------- | ----------- | ---------------------------- | ------------ |
 | id          | BIGINT      | PK, NOT NULL, AUTO_INCREMENT | 신고 고유 식별자    |
@@ -285,7 +284,7 @@ erDiagram
 | updated_at  | DATETIME    | NULL                         | 신고 처리 일시     |
 
 
-### 1.2.9 follow (회원 팔로우)
+## 2.9 follow (회원 팔로우)
 | 컬럼명        | 데이터 타입   | 제약 조건                        | 설명             |
 | ---------- | -------- | ---------------------------- | -------------- |
 | id         | BIGINT   | PK, NOT NULL, AUTO_INCREMENT | 팔로우 고유 식별자     |
@@ -296,7 +295,7 @@ erDiagram
 - 동일 회원에 대한 중복 팔로우를 방지한다.
 
 
-### 1.2.10 subscription (사용자 정기 구독)
+## 2.10 subscription (사용자 정기 구독)
 | 컬럼명             | 데이터 타입       | 제약 조건                               | 설명                |
 | --------------- | ------------ | ----------------------------------- | ----------------- |
 | id              | BIGINT       | PK, NOT NULL, AUTO_INCREMENT        | 구독 고유 식별자         |
@@ -312,7 +311,7 @@ erDiagram
 - 구독 해지 후 재구독 시 새로운 구독 이력을 생성할 수 있도록 설계한다.
 
 
-### 1.2.11 payment (결제)
+## 2.11 payment (결제)
 | 컬럼명             | 데이터 타입       | 제약 조건                            | 설명            |
 | --------------- | ------------ | -------------------------------- | ------------- |
 | id              | BIGINT       | PK, NOT NULL, AUTO_INCREMENT     | 결제 고유 식별자     |
